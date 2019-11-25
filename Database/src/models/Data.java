@@ -10,9 +10,10 @@ package models;
 public class Data {
 	int currentVal;
 	int lastCommittedVal;
-	//Read and write lockes required here???
-//	boolean readLock;
-//	boolean writeLock;
+	//Read and write locks required here???
+	//boolean readLock;
+	//boolean writeLock;
+	
 	public int getCurrentVal() {
 		return currentVal;
 	}

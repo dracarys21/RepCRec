@@ -11,8 +11,33 @@ import java.util.Map;
  */
 public class Site {
 	List<Data> variables;
-	Map<Data, Boolean> readLockTable;
-	Map<Data, Boolean> writeLockTable;
+	private Map<Data, Boolean> readLockTable; // need to keep track of transaction acquiring locks for integrity
+	private Map<Data, Boolean> writeLockTable;
 	int upTimeStamp;	//Time of becoming active
-	boolean isActive;
+	char status; //active, failed , recovered
+	
+	public boolean isReadLockAvailable(Data x)
+	{
+		return !writeLockTable.get(x);		
+	}
+	
+	public boolean isWriteLockAvailable(Data x)
+	{
+		return !(writeLockTable.get(x)|| readLockTable.get(x));
+	}
+	
+	public void setReadLock(Data x)
+	{
+		readLockTable.put(x, true);
+	}
+	
+	public void setWriteLock(Data x)
+	{
+		writeLockTable.put(x, true);
+	}
+	
+	public boolean isSiteActive()
+	{
+		return status=='A';
+	}
 }
