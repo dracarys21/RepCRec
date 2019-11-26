@@ -19,21 +19,19 @@ import models.Data;
  *
  */
 public class TransactionManager {
-	public  int time;
+	public static int time;
 	List<Transaction> allAliveTransaction;
-	List<Site> allSites;
-	Map<Data, List<Site>> routes;
-	Map<Data, List<Transaction>> waitingQueue;
+	Map<Integer, List<Transaction>> waitingQueue; //easier to manage
 	List<Transaction> activeList;	//For deadlock detection
 	List<Transaction> activeListRO;
 	HashSet<Data> variableAccessed; //for the commit time to check whether the sites for accessed variable are up since the start.
+	Map<Integer, List<Site>> routes;
 	
 	public TransactionManager()
 	{
 		time = 0;
 		allAliveTransaction = new ArrayList<>();
-		allSites = new ArrayList<>();
-		routes = new HashMap<Data, List<Site>>();
+		routes = DataManager.routes;
 		waitingQueue = new HashMap<>();
 		activeList = new ArrayList<>();
 		activeListRO = new ArrayList<>();
@@ -57,33 +55,44 @@ public class TransactionManager {
 		if(t.getType().equals("RW"))
 			activeList.remove(t);
 		else
-			activeListRO.remove(t);
-		
-	}
+			activeListRO.remove(t);	
+	} 
 	
-	public void availableCopies(String tname, Data d)
+	public void availableCopies(String tname, int iData)
 	{
-		//get transaction
+		//for read transaction
 		Transaction t = getTransaction(tname);
+		List<Site> sites = routes.get(iData);
+		Site s = null;
+		List<Site> sitesfordata = routes.get(iData);
 		
-		List<Site> sites = routes.get(d);
-		Site s;
-		
-		for(Site st: sites)
+		//check for 
+		     
+		for(Site st:sitesfordata )
 		{
-			if(st.isSiteActive() && st.isReadLockAvailable(d))
+			if(st.checkSiteStatus('A') && st.isReadLockAvailable(iData))
 			{
 				s = st;
 				break;
 			}
 		}
+		
+		if(s==null)
+		{
+			List<Transaction> qt = waitingQueue.get(iData);
+			qt.add(t);
+			waitingQueue.put(iData, qt);
+		}
+		
+		time++;
 	}
 	
 	public void availableCopies(Transaction t, Data d, int value)
 	{
-		
+		// for write transaction
 	}
 	
+	/*Get transaction by name*/
 	private Transaction getTransaction(String tname)
 	{
 		Optional<Transaction> tr =  allAliveTransaction.stream().filter(t -> t.name.equals(tname)).findFirst();

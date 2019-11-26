@@ -21,6 +21,11 @@ public class Sim {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
+		
+		DataManager dm = new DataManager();
+		dm.createData();
+		dm.createSites();
+		
 		Path inputFile = Paths.get("Input\\Test2.txt");
 		File file = inputFile.toFile(); 
 		Scanner sc = new Scanner(file); 
@@ -62,6 +67,10 @@ public class Sim {
 			else if(instr.equals("recover"))
 			{
 				String siteName = st.nextToken();
+			}
+			else if(instr.equals("dump"))
+			{
+				//output results.
 			}
 			else if(instr.equals("R"))
 			{

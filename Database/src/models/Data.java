@@ -8,12 +8,23 @@ package models;
  *
  */
 public class Data {
+	
+	public final int index; //for identification of data variable
 	int currentVal;
 	int lastCommittedVal;
-	//Read and write locks required here???
-	//boolean readLock;
-	//boolean writeLock;
 	
+	public Data( int i, int initialVal){
+		currentVal = initialVal;
+		lastCommittedVal = initialVal;
+		index = i;
+	}
+	
+	public Data(Data d)
+	{
+		index = d.index;
+		currentVal = d.currentVal;
+		lastCommittedVal = d.lastCommittedVal;
+	}
 	public int getCurrentVal() {
 		return currentVal;
 	}
