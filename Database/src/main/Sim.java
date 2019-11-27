@@ -25,8 +25,10 @@ public class Sim {
 		DataManager dm = new DataManager();
 		dm.createData();
 		dm.createSites();
+		//dm.printRoutes();
 		
-		Path inputFile = Paths.get("Input\\Test2.txt");
+		
+		Path inputFile = Paths.get("Input\\Test1.txt");
 		File file = inputFile.toFile(); 
 		Scanner sc = new Scanner(file); 
 			  
@@ -77,6 +79,7 @@ public class Sim {
 				String tname = st.nextToken();
 				String varName = st.nextToken();
 				//available copies read
+			tm.availableCopies(tname, Integer.parseInt(varName.substring(1)));
 			}
 			else if(instr.equals("W"))
 			{

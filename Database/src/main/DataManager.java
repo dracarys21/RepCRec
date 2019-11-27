@@ -35,8 +35,8 @@ public class DataManager {
 	
 	private void initializeRoute()
 	{
-		for(int i = 1; i<20; i = i+2)
-			routes.put(i+1,new ArrayList<Site>(sites));
+		for(int i = 2 ; i<=20; i = i+2)
+			routes.put(i,new ArrayList<Site>(sites));
 		
 		for(int i = 0; i<20; i = i+2)
 		{
@@ -51,14 +51,10 @@ public class DataManager {
 		return routes;
 	}
 	
-	boolean getReadLock(int idata, int isite)
-	{
-		
-	}
 	 
 	 
 	 
-	 /*
+	 
 	 void printDataOnSite()
 	{
 		for(Site s: sites)
@@ -82,5 +78,5 @@ public class DataManager {
 			}
 			System.out.println();
 		}
-	}*/
+	}
 }

@@ -9,8 +9,6 @@ import java.util.*;
  *
  */
 public class Site {
-	
-	
 	public final int index; //for identifying each site:
 	
 	public List<Data> variables;
@@ -26,6 +24,7 @@ public class Site {
 		readLockTable = new HashMap<>();
 		writeLockTable = new HashMap<>();
 		upTimeStamp = 0;
+		status = 'A';
 		index = i;
 		initializeLockTable();
 	}

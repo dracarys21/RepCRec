@@ -15,8 +15,8 @@ public class Transaction {
 	int startTime;
 	List<Site> sitesAccessed;
 	public char status;	//active/blocked/dead
-	
-	 private final String type;
+	//list locks held by it...s 
+	private final String type;
 	
 	public Transaction(String name, int time, String t)
 	{
