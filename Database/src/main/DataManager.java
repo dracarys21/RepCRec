@@ -8,7 +8,7 @@ public class DataManager {
 	
 	static List<Data> variables  = new ArrayList<>();
 	final static List<Site> sites = new ArrayList<>();
-	final static Map<Integer, List<Site>> routes = new HashMap<>(); //Directly mapping data-index to sites
+	final static Map<Data, List<Site>> routes = new HashMap<>(); //Directly mapping data-index to sites
 	
 	 void createData()
 	{
@@ -36,25 +36,22 @@ public class DataManager {
 	private void initializeRoute()
 	{
 		for(int i = 2 ; i<=20; i = i+2)
-			routes.put(i,new ArrayList<Site>(sites));
+			routes.put(new Data(i),new ArrayList<Site>(sites));
 		
 		for(int i = 0; i<20; i = i+2)
 		{
 			List<Site> s1 = new ArrayList<Site>();
 			s1.add(sites.get(i%10));
-			routes.put(i+1,s1 );
+			routes.put(new Data(i+1),s1 );
 		}
 	}
 	
-	 Map<Integer, List<Site>> getRoutes()
+	 Map<Data, List<Site>> getRoutes()
 	{
 		return routes;
 	}
 	
-	 
-	 
-	 
-	 
+	 /*
 	 void printDataOnSite()
 	{
 		for(Site s: sites)
@@ -69,14 +66,14 @@ public class DataManager {
 	
 	 void printRoutes()
 	{
-		for (Map.Entry<Integer,List<Site>> entry : routes.entrySet())
+		for (Map.Entry<Data,List<Site>> entry : routes.entrySet())
 		{
-			System.out.println("d"+entry.getKey()+":");
+			System.out.println("d"+entry.getKey().index+":");
 			for(Site s: entry.getValue())
 			{
 				System.out.print("s:"+s.index+", ");
 			}
 			System.out.println();
 		}
-	}
+	}*/
 }

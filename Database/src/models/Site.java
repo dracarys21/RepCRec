@@ -15,7 +15,7 @@ public class Site {
 	
 	private Map<Data, Boolean> readLockTable; // need to keep track of transaction acquiring locks for integrity
 	private Map<Data, Boolean> writeLockTable;
-	int upTimeStamp;	//Time of becoming active
+	public int upTimeStamp;	//Time of becoming active
 	char status; //active, failed , recovered
 	
 	public Site(int i, List<Data> var)
@@ -34,28 +34,24 @@ public class Site {
 		return status==c;
 	}
 	
-	public boolean isReadLockAvailable(int xid)
+	public boolean isReadLockAvailable(Data d)
 	{
-		Data x = getVariable(xid);
-		return !writeLockTable.get(x);		
+		return !writeLockTable.get(d);		
 	}
 	
-	public boolean isWriteLockAvailable(int xid)
+	public boolean isWriteLockAvailable(Data d)
 	{
-		Data x = getVariable(xid);
-		return !(writeLockTable.get(x)|| readLockTable.get(x));
+		return !(writeLockTable.get(d)|| readLockTable.get(d));
 	}
 	
-	public void setReadLock(int xid)
+	public void setReadLock(Data d)
 	{
-		Data x = getVariable(xid);
-		readLockTable.put(x, true);
+		readLockTable.put(d, true);
 	}
 	
-	public void setWriteLock(int xid)
+	public void setWriteLock(Data d)
 	{
-		Data x = getVariable(xid);
-		writeLockTable.put(x, true);
+		writeLockTable.put(d, true);
 	}
 	
 	private void initializeLockTable()
@@ -65,6 +61,17 @@ public class Site {
 			readLockTable.put(d,false);
 			writeLockTable.put(d,false);
 		}
+	}
+	public int getData(Data d)
+	{
+		int index = variables.indexOf(d);
+		return variables.get(index).currentVal;
+	}
+	public void setData(Data d, int v)
+	{
+		int index = variables.indexOf(d);
+		Data data = variables.get(index);
+		data.currentVal = v;	
 	}
 	
 	public void failSite()
@@ -80,13 +87,5 @@ public class Site {
 	public void activeSite()
 	{
 		
-	}
-	
-	private Data getVariable(int idata)
-	{
-		Optional<Data> tr =  variables.stream().filter(d -> d.index == idata).findFirst();
-		if(tr.isPresent())
-			return tr.get();
-		return null;		
 	}
 }
