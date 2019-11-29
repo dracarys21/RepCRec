@@ -6,6 +6,7 @@ package main;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,19 +70,62 @@ public class TransactionManager {
 		for(Site st: siteAccessed)
 		{
 			if(st.upTimeStamp<t.startTime)
-				//abort transaction 
+			{
 				//release all its locks
+				releaseLocks(t);
+				//abort transaction 
 				return;
+			}
+				
 		}
 		
 		if(!t.writeLockPossesed.isEmpty()) {
 			
 		//commit data on sites -- for write
+			HashSet<Data> writeLockRelease = t.writeLockPossesed;
+			Iterator<Data> i = writeLockRelease.iterator(); 
+	        while (i.hasNext()) 
+	        {
+	        	Data d  = i.next();
+	        	List<Site> siteAcc = routes.get(d);
+	        	for(Site s: siteAcc)
+	        		s.commitData(d);;
+	        }
 			
 		}
 		//update value on DM -- for write
+		HashSet<Data> updateDataList = t.writeLockPossesed;
+		Iterator<Data> i = updateDataList.iterator(); 
+        while (i.hasNext()) 
+        {
+        	Data d  = i.next();
+        	List<Site> siteAcc = routes.get(d);
+        	for(Site s: siteAcc)
+        		DataManager.updateDataValues(d, d.getLastCommittedVal());
+        }
 		//release all its lock.	
+		releaseLocks(t);
 	} 
+	
+	public void releaseLocks(Transaction t)
+	{
+		HashMap<Data,Site> readLockRelease = t.readLocksPossesed;
+		for (Map.Entry<Data,Site> entry : readLockRelease.entrySet())
+		{
+			Data d  = entry.getKey();
+			entry.getValue().releaseReadLock(d);
+		}
+		
+		HashSet<Data> writeLockRelease = t.writeLockPossesed;
+		Iterator<Data> i = writeLockRelease.iterator(); 
+        while (i.hasNext()) 
+        {
+        	Data d  = i.next();
+        	List<Site> siteAcc = routes.get(d);
+        	for(Site s: siteAcc)
+        		s.releaseWriteLock(d);
+        }
+	}
 	
 	public void readAction(String tname, int d)
 	{
@@ -108,6 +152,7 @@ public class TransactionManager {
 			if(t.checkAction('W'))
 			{
 				//implement AC for write for transaction t
+				availableCopies(t.name,t.getActionData(),);
 				return;
 			}
 		}
@@ -115,9 +160,10 @@ public class TransactionManager {
 		{
 			t = getActiveTransaction(tname,activeList,"RW");
 			//if transaction already has readLock/writeLock on the variable then new lock is not necessary
-			if(t.readLocksPossesed.contains(d) || t.writeLockPossesed.contains(d))
+			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.contains(d))
 			{
 				//read the value
+				System.out.println(t.name+" reads data"+d.index);
 				return;
 			}
 		}
@@ -144,7 +190,7 @@ public class TransactionManager {
 			}
 			
 			s.setReadLock(d);
-			t.readLocksPossesed.add(new Pair<Data,Site>(d,s));
+			t.readLocksPossesed.put(d,s);
 			t.sitesAccessed.add(s);	
 			//read the value
 			System.out.println(t.name+" site:"+s.index+" "+s.getData(d));
@@ -181,11 +227,23 @@ public class TransactionManager {
 			if(t.checkAction('R'))
 			{
 				//implement AC for read for transaction t
+			///	availableCopies(t.name,t.getActionData(),);
 				return;
 			}
 		}
 		else
+		{
 			t = getActiveTransaction(tname,activeList,"RW"); 
+			//if transaction already has writeLock on the variable then new lock is not necessary
+			if(t.writeLockPossesed.contains(d))
+			{
+				List<Site> sitesfordata = routes.get(d);
+				for(Site st:sitesfordata )
+					st.setData(d, value);	
+				return;
+			}
+			  
+		}
 		
 		//get sites for the data.
 		List<Site> sitesfordata = routes.get(d);
@@ -205,17 +263,14 @@ public class TransactionManager {
 			}
 		}
 		
+		System.out.println(t.name+" writing "+d.index);
 		//get write locks on all sites
 		for(Site st:sitesfordata )
-		{
 				st.setWriteLock(d);
-				t.sitesAccessed.add(st);
-		}
-				
+					
 		//perform write.
 		for(Site st:sitesfordata )
-			st.setData(d, value);
-			
+			st.setData(d, value);				
 	}
 	
 	public void multiversionRead(String tname, Data d)

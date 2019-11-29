@@ -51,6 +51,13 @@ public class DataManager {
 		return routes;
 	}
 	
+	static void updateDataValues(Data d, int v)
+	{
+		int index = variables.indexOf(d);
+		Data data = variables.get(index);
+		data.setCurrentVal(v);
+		data.setLastCommittedVal(v);
+	}
 	 /*
 	 void printDataOnSite()
 	{

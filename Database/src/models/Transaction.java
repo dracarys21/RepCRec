@@ -4,6 +4,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -32,8 +33,8 @@ public class Transaction implements Comparable<Transaction>{
 	public List<Site> sitesAccessed = new ArrayList<Site>();
 	private TransactionStatus status;	//active/blocked/dead
 	//list of locks held by it...
-	public List<Pair<Data,Site>> readLocksPossesed = new ArrayList<Pair<Data,Site>>();
-	public List<Pair<Data,Site>> writeLockPossesed = new ArrayList<Pair<Data,Site>>();
+	public HashMap<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
+	public HashSet<Data> writeLockPossesed = new HashSet<Data>();
 	private final String type;
 	
 	public Transaction(String name, int time, String t)
@@ -53,6 +54,11 @@ public class Transaction implements Comparable<Transaction>{
 	public String getType()
 	{
 		return type;
+	}
+	
+	public Data getActionData()
+	{
+		return status.variable; 
 	}
 	
 	public void changeStatusToActive(Data d, char o)

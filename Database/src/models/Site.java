@@ -49,6 +49,14 @@ public class Site {
 		readLockTable.put(d, true);
 	}
 	
+	public void releaseReadLock(Data d)
+	{
+		readLockTable.put(d,false);
+	}
+	public void releaseWriteLock(Data d)
+	{
+		writeLockTable.put(d,false);
+	}
 	public void setWriteLock(Data d)
 	{
 		writeLockTable.put(d, true);
@@ -73,7 +81,12 @@ public class Site {
 		Data data = variables.get(index);
 		data.currentVal = v;	
 	}
-	
+	public void commitData(Data d)
+	{
+		int index = variables.indexOf(d);
+		Data data = variables.get(index);
+		data.lastCommittedVal = data.currentVal;
+	}
 	public void failSite()
 	{
 		

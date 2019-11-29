@@ -90,9 +90,9 @@ public class Sim {
 				//available copies write
 			}
 			
-			tm.time++;
-				
+			tm.time++;				
 		}
+		
 		 
 	}
 
