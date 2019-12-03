@@ -10,10 +10,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 
-import fuctional.Pair;
 import models.Site;
 import models.Transaction;
 import models.Data;
@@ -24,7 +22,7 @@ import models.Data;
 public class TransactionManager {
 	public static int time;
 	List<Transaction> allAliveTransaction;
-	Map<Data, Queue<Transaction>> waitingQueue;  
+	Map<Data, Queue<Transaction>> waitingQueue;
 	List<Transaction> activeList;	
 	List<Transaction> activeListRO;
 	Map<Data, List<Site>> routes;
