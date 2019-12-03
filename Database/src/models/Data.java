@@ -12,11 +12,13 @@ public class Data implements Comparable<Data>{
 	public final int index; //for identification of data variable
 	int currentVal;
 	int lastCommittedVal;
+	boolean isValid;
 	
 	public Data( int i, int initialVal){
 		currentVal = initialVal;
 		lastCommittedVal = initialVal;
 		index = i;
+		isValid=true;
 	}
 	
 	public Data(int i)
@@ -29,6 +31,7 @@ public class Data implements Comparable<Data>{
 		index = d.index;
 		currentVal = d.currentVal;
 		lastCommittedVal = d.lastCommittedVal;
+		isValid = d.isValid;
 	}
 	
 	public int getCurrentVal() {

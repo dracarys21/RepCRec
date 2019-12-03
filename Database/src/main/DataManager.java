@@ -22,14 +22,20 @@ public class DataManager {
 		for(int i = 1; i< 20; i = i+2)
 			evenList.add(new Data(variables.get(i)));
 		
-		for(int i = 0; i<10; i++)
+		for(int i = 0; i<10; i=i+2)
 		{
 			List<Data> newList = new ArrayList<>(evenList);
-			newList.add(new Data(variables.get(i)));
-			newList.add(new Data(variables.get(10+i)));
 			sites.add(new Site(i+1, newList));
 		}
 		
+		for(int i = 1; i<10; i=i+2)
+		{
+			List<Data> newList = new ArrayList<>(evenList);
+			newList.add(new Data(variables.get(i-1)));
+			newList.add(new Data(variables.get(10+(i-1))));
+			sites.add(new Site(i+1, newList));
+		}
+		Collections.sort(sites);
 		initializeRoute();
 	}
 	
@@ -41,7 +47,7 @@ public class DataManager {
 		for(int i = 0; i<20; i = i+2)
 		{
 			List<Site> s1 = new ArrayList<Site>();
-			s1.add(sites.get(i%10));
+			s1.add(sites.get(i%10+1));
 			routes.put(new Data(i+1),s1 );
 		}
 	}
@@ -58,7 +64,7 @@ public class DataManager {
 		data.setCurrentVal(v);
 		data.setLastCommittedVal(v);
 	}
-	 /*
+	 
 	 void printDataOnSite()
 	{
 		for(Site s: sites)
@@ -82,5 +88,5 @@ public class DataManager {
 			}
 			System.out.println();
 		}
-	}*/
+	}
 }
