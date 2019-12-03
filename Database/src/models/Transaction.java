@@ -8,15 +8,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import fuctional.Pair;
-
 /**
  * @author varada
  *
  */
 class TransactionStatus{
 	char status; //A: alive, D: dead, B: blocked
-	Character operation;
+	Character operation;	//read/write -> type of operation that the transaction is waiting for
 	Data variable;
 	int writingVal;
 	TransactionStatus(char s, Character o, Data d)
