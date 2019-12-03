@@ -93,6 +93,9 @@ public class Sim {
 			tm.time++;				
 		}
 		
+		//how to simulate waitingQueue logic for each transaction???
+		//Required to create a common Queue??
+		
 		 
 	}
 

@@ -15,15 +15,24 @@ import fuctional.Pair;
  *
  */
 class TransactionStatus{
-	char status;
+	char status; //A: alive, D: dead, B: blocked
 	Character operation;
 	Data variable;
-	
+	int writingVal;
 	TransactionStatus(char s, Character o, Data d)
 	{
 		status = s;
 		operation = o;
 		variable = d;
+		writingVal = Integer.MAX_VALUE;
+	}
+	
+	TransactionStatus(char s, Character o, Data d, int wVal)
+	{
+		status = s;
+		operation = o;
+		variable = d;
+		writingVal = wVal;
 	}
 	
 }
@@ -61,7 +70,7 @@ public class Transaction implements Comparable<Transaction>{
 		return status.variable; 
 	}
 	
-	public void changeStatusToActive(Data d, char o)
+	public void changeStatusToActive(Data d, char o) //do I need Data d and o for keeping Active Transaction track??
 	{
 		status = new TransactionStatus('A', new Character(o), d);
 	}
@@ -69,6 +78,16 @@ public class Transaction implements Comparable<Transaction>{
 	public void changeStatusToBlocked(Data d, char o)
 	{
 		status = new TransactionStatus('B', new Character(o), d);
+	}
+	
+	public void changeStatusToBlocked(Data d, char o, int wVal)
+	{
+		status = new TransactionStatus('B', new Character(o), d, wVal);
+	}
+	
+	public int getWriteValue()
+	{
+		return status.writingVal;
 	}
 	
 	public void changeStatusToDead()
@@ -102,7 +121,6 @@ public class Transaction implements Comparable<Transaction>{
 		result = prime * result +  name.hashCode();
 		return result;
 	}
-	
 	
 	@Override
 	public int compareTo(Transaction t) {

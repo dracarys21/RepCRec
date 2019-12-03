@@ -152,7 +152,7 @@ public class TransactionManager {
 			if(t.checkAction('W'))
 			{
 				//implement AC for write for transaction t
-				availableCopies(t.name,t.getActionData(),);
+				availableCopies(t.name,t.getActionData(),t.getWriteValue());
 				return;
 			}
 		}
@@ -220,14 +220,14 @@ public class TransactionManager {
 			//change current transaction status from active to blocked for the data and insert to blocked queue
 			Transaction currTrans = getActiveTransaction(tname,activeList,"RW"); 
 			activeList.remove(currTrans);
-			currTrans.changeStatusToBlocked(d, 'W'); 
+			currTrans.changeStatusToBlocked(d, 'W',value); 
 			waitingQueue.get(d).add(currTrans);
 			isBlockedTrans = true;
 			
 			if(t.checkAction('R'))
 			{
 				//implement AC for read for transaction t
-			///	availableCopies(t.name,t.getActionData(),);
+				availableCopies(t.name,t.getActionData());
 				return;
 			}
 		}
@@ -256,7 +256,7 @@ public class TransactionManager {
 				if(!isBlockedTrans)
 				{
 					activeList.remove(t);
-					t.changeStatusToBlocked(d, 'W'); 
+					t.changeStatusToBlocked(d, 'W', value); 
 					waitingQueue.get(d).add(t);
 					return;
 				}			
