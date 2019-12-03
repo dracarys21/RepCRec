@@ -43,14 +43,14 @@ public class Sim {
 			if(instr.equals("begin"))
 			{
 				String tname = st.nextToken();
-				Transaction t =  new Transaction(tname,tm.time,"RW");
+				Transaction t =  new Transaction(tname,TransactionManager.time,"RW");
 				//assign transaction
 				tm.addToSystem(t);			
 			}
 			else if(instr.equals("beginRO"))
 			{
 				String tname = st.nextToken();
-				Transaction t =  new Transaction(tname,tm.time,"RO");
+				Transaction t =  new Transaction(tname,TransactionManager.time,"RO");
 				tm.addToSystem(t);
 			}
 			else if(instr.equals("end"))
