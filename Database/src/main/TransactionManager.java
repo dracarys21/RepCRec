@@ -4,6 +4,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,8 +22,7 @@ import models.Data;
  */
 public class TransactionManager {
 	public static int time;
-	List<Transaction> allAliveTransaction;
-	Map<Data, Queue<Transaction>> waitingQueue;
+	Map<Data, Queue<Transaction>> waitingQueue;  
 	List<Transaction> activeList;	
 	List<Transaction> activeListRO;
 	Map<Data, List<Site>> routes;
@@ -30,7 +30,6 @@ public class TransactionManager {
 	public TransactionManager()
 	{
 		time = 0;
-		allAliveTransaction = new ArrayList<>();
 		routes = DataManager.routes;
 		waitingQueue = new HashMap<>();//initialize waiting queue
 		activeList = new ArrayList<>();
@@ -40,7 +39,6 @@ public class TransactionManager {
 	
 	public void addToSystem(Transaction t)
 	{
-		allAliveTransaction.add(t);
 		if(t.getType().equals("RW"))
 			activeList.add(t);
 		else
@@ -63,15 +61,16 @@ public class TransactionManager {
 			activeListRO.remove(t);
 		}
 		
-		List<Site> siteAccessed = t.sitesAccessed;
+		HashSet<Site> siteAccessed = t.sitesAccessed;
 		//if a site upTime < t.startTime then abort the transaction (site has failed)
 		for(Site st: siteAccessed)
 		{
-			if(st.upTimeStamp<t.startTime)
+			if(st.upTimeStamp>t.startTime || st.upTimeStamp==-1)
 			{
 				//release all its locks
 				releaseLocks(t);
 				//abort transaction 
+				System.out.println(t.name+" aborted");
 				return;
 			}
 				
@@ -133,6 +132,7 @@ public class TransactionManager {
 			multiversionRead(tname, new Data(d));
 	}
 	
+	//to Decide which transaction to execute
 	public void availableCopies(String tname, Data d)
 	{
 		Transaction t  = null;
@@ -148,9 +148,8 @@ public class TransactionManager {
 			isBlockedTrans = true;
 			
 			if(t.checkAction('W'))
-			{
-				//implement AC for write for transaction t
-				availableCopies(t.name,t.getActionData(),t.getWriteValue());
+			{//implement AC for write for transaction t
+				availableCopiesWrite(t,t.getActionData(),t.getWriteValue(),true);
 				return;
 			}
 		}
@@ -165,48 +164,55 @@ public class TransactionManager {
 				return;
 			}
 		}
-		
-		//get sites for the data.
-		Site s = null;
-		List<Site> sitesfordata = routes.get(d);
-		for(Site st:sitesfordata )
-		{
-			if(st.checkSiteStatus('A') && st.isReadLockAvailable(d))
-			{
-				s = st;
-				break;
-			}
-		}
-		//if site found --- get readLock
-		if(s!=null)
-		{
-			//if t is from blocked queue, remove the transaction from blocked queue and insert into activeList 
-			if(isBlockedTrans)
-			{
-				waitingQueue.get(d).remove();
-				activeList.add(t);
-			}
-			
-			s.setReadLock(d);
-			t.readLocksPossesed.put(d,s);
-			t.sitesAccessed.add(s);	
-			//read the value
-			System.out.println(t.name+" site:"+s.index+" "+s.getData(d));
-		}
-		//site not found
-		else
-		{
-			//if t is from blocked queue, return
-			//if t is in activeList, remove t from activeList and insert in blocked queue for data
-			if(activeList.contains(t))
-			{
-				activeList.remove(t);
-				t.changeStatusToBlocked(d, 'R'); 
-				waitingQueue.get(d).add(t);
-			}
-		}
+		availableCopiesRead(t,d,isBlockedTrans);
 	}
 	
+	//to Peform Read transaction
+	private void availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
+	{
+		//get sites for the data.
+				Site s = null;
+				List<Site> sitesfordata = routes.get(d);
+				for(Site st:sitesfordata )
+				{
+					if(st.isReadLockAvailable(d))
+					{
+						s = st;
+						break;
+					}
+				}
+				//if site found --- get readLock
+				if(s!=null)
+				{
+					//if t is from blocked queue, remove the transaction from blocked queue and insert into activeList 
+					if(isBlockedTrans)
+					{
+						waitingQueue.get(d).remove();
+						t.changeStatusToActive();
+						activeList.add(t);
+					}
+					
+					s.setReadLock(d,t);
+					t.readLocksPossesed.put(d,s);
+					t.sitesAccessed.add(s);	
+					//read the value
+					System.out.println(t.name+" site:"+s.index+" "+s.getData(d));
+				}
+				//site not found
+				else
+				{
+					//if t is from blocked queue, return
+					//if t is in activeList, remove t from activeList and insert in blocked queue for data
+					if(activeList.contains(t))
+					{
+						activeList.remove(t);
+						t.changeStatusToBlocked(d, 'R'); 
+						waitingQueue.get(d).add(t);
+					}
+				}
+		}
+	
+	//to Decide which transaction to execute
 	public void availableCopies(String tname, Data d, int value)
 	{
 		Transaction t  = null;
@@ -225,7 +231,7 @@ public class TransactionManager {
 			if(t.checkAction('R'))
 			{
 				//implement AC for read for transaction t
-				availableCopies(t.name,t.getActionData());
+				availableCopiesRead(t,t.getActionData(),true);
 				return;
 			}
 		}
@@ -239,17 +245,26 @@ public class TransactionManager {
 				for(Site st:sitesfordata )
 					st.setData(d, value);	
 				return;
-			}
-			  
+			}  
 		}
-		
+		availableCopiesWrite(t,d,value,isBlockedTrans);
+	}
+	
+	//to Peform write transaction
+	private void availableCopiesWrite(Transaction t, Data d, int value, boolean isBlockedTrans)
+	{
+
 		//get sites for the data.
 		List<Site> sitesfordata = routes.get(d);
 		//check status of each site for variable d
 		for(Site st:sitesfordata )
 		{
-			//if any site is failed or lock not available--- block the transaction
-			if(!st.isWriteLockAvailable(d) || st.checkSiteStatus('F'))
+			//if any site is failed leave that site
+			if(st.checkSiteStatus('F'))
+				continue;
+			
+			// lock not available on up site--- block the transaction
+			if(!st.isWriteLockAvailable(d))
 			{
 				if(!isBlockedTrans)
 				{
@@ -264,16 +279,70 @@ public class TransactionManager {
 		System.out.println(t.name+" writing "+d.index);
 		//get write locks on all sites
 		for(Site st:sitesfordata )
-				st.setWriteLock(d);
-					
+		{
+			if(!st.checkSiteStatus('F')) {
+				st.setWriteLock(d,t);
+				t.sitesAccessed.add(st);
+			}
+		}
+		
+		t.writeLockPossesed.add(d);	
+		
 		//perform write.
 		for(Site st:sitesfordata )
-			st.setData(d, value);				
+			if(!st.checkSiteStatus('F')) 
+				st.setData(d, value);
+		
+		//if blocked transaction--make it active
+		if(isBlockedTrans)
+		{
+			waitingQueue.get(d).remove();
+			t.changeStatusToActive();
+			activeList.add(t);
+		}
 	}
 	
 	public void multiversionRead(String tname, Data d)
 	{
 		
+	}
+	
+	public void dump()
+	{
+		List<Site> s = new ArrayList<>(DataManager.sites);
+		Collections.sort(s);
+		for(Site stemp: s)
+		{
+			List<Data> data= new ArrayList<Data>(stemp.variables);
+			System.out.println(stemp.index+":");
+			for(Data dtemp: data)
+				System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
+			System.out.println();
+		}
+		
+		System.out.println("Data Mangaer Values");
+		
+		for(Data dtemp: DataManager.variables)
+		{
+			System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
+		}
+	}
+	
+	
+	//change Site Status to failed
+	public void failSite(int sindex)
+	{
+		int index = DataManager.sites.indexOf(new Site(sindex));
+		Site s = DataManager.sites.get(index);
+		s.failSite();	
+	}
+	
+	//change Site Status to recover
+	public void recoverSite(int sindex)
+	{
+		int index = DataManager.sites.indexOf(new Site(sindex));
+		Site s = DataManager.sites.get(index);
+		s.recoverSite(time);
 	}
 	
 	private void initializeWaitingQueue()

@@ -37,7 +37,7 @@ class TransactionStatus{
 public class Transaction implements Comparable<Transaction>{
 	public final String name;
 	public final int startTime;
-	public List<Site> sitesAccessed = new ArrayList<Site>();
+	public HashSet<Site> sitesAccessed = new HashSet<Site>();
 	private TransactionStatus status;	//active/blocked/dead
 	//list of locks held by it...
 	public HashMap<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
@@ -68,9 +68,9 @@ public class Transaction implements Comparable<Transaction>{
 		return status.variable; 
 	}
 	
-	public void changeStatusToActive(Data d, char o) //do I need Data d and o for keeping Active Transaction track??
+	public void changeStatusToActive()//do I need Data d and o for keeping Active Transaction track??
 	{
-		status = new TransactionStatus('A', new Character(o), d);
+		status = new TransactionStatus('A', null, null);
 	}
 	
 	public void changeStatusToBlocked(Data d, char o)
