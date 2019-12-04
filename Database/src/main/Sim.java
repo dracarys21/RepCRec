@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
+import models.Data;
 import models.Transaction;
 
 /**
@@ -26,10 +27,12 @@ public class Sim {
 		dm.createData();
 		dm.createSites();
 		//dm.printRoutes();
+		//dm.printDataOnSite();
 		
-
+		
 		Path inputFile = Paths.get("Input\\Test1.txt");
 		File file = inputFile.toFile(); 
+		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(file); 
 			  
 		TransactionManager tm = new TransactionManager();
@@ -56,26 +59,26 @@ public class Sim {
 			else if(instr.equals("end"))
 			{
 				String tname = st.nextToken();
-			//	tm.removeFromSystem(tname);
-			}
-			else if(instr.equals("commits"))
-			{
-				//commit the final values to database --- maybe have to make a class for DM
+				tm.removeFromSystem(tname);
 			}
 			else if(instr.equals("fail"))
 			{
 				String siteName = st.nextToken();
+				tm.failSite(Integer.parseInt(siteName));
 			}
 			else if(instr.equals("recover"))
 			{
 				String siteName = st.nextToken();
+				tm.recoverSite(Integer.parseInt(siteName));
 			}
 			else if(instr.equals("dump"))
 			{
+				tm.dump();
 				//output results.
 			}
 			else if(instr.equals("R"))
 			{
+			//	System.out.println(instr);
 				String tname = st.nextToken();
 				String varName = st.nextToken();
 				//available copies read
@@ -87,16 +90,17 @@ public class Sim {
 				String tname = st.nextToken();
 				String varName = st.nextToken();
 				int value =  Integer.parseInt(st.nextToken());
+	//			System.out.println(varName.substring(1));
 				//available copies write
+				tm.availableCopies(tname, new Data(Integer.parseInt(varName.substring(1))), value);
 			}
 			
-			tm.time++;				
+			TransactionManager.time++;				
 		}
 		
 		//how to simulate waitingQueue logic for each transaction???
 		//Required to create a common Queue??
-		
-		 
+			 
 	}
 
 }
