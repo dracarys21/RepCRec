@@ -21,7 +21,6 @@ import models.Data;
  */
 public class TransactionManager {
 	public static int time;
-	List<Transaction> allAliveTransaction;
 	Map<Data, Queue<Transaction>> waitingQueue;
 	List<Transaction> activeList;	
 	List<Transaction> activeListRO;
@@ -30,7 +29,6 @@ public class TransactionManager {
 	public TransactionManager()
 	{
 		time = 0;
-		allAliveTransaction = new ArrayList<>();
 		routes = DataManager.routes;
 		waitingQueue = new HashMap<>();//initialize waiting queue
 		activeList = new ArrayList<>();
@@ -40,7 +38,6 @@ public class TransactionManager {
 	
 	public void addToSystem(Transaction t)
 	{
-		allAliveTransaction.add(t);
 		if(t.getType().equals("RW"))
 			activeList.add(t);
 		else
