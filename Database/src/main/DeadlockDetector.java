@@ -11,12 +11,23 @@ import models.Transaction;
 
 public class DeadlockDetector {
 	int noOfActiveTransactions;	//number of entries in dependencies map
-	int[][] waitsForGraph;	//(WRT order in dependencies map) 0th index -> T1, 1st index -> T2, 2nd index -> T3 and so on
-	Map<Transaction, List<Data>> dependencies;
+	List<Integer>[] waitsForGraph;	//(WRT order in dependencies map) 0th index -> T1, 1st index -> T2, 2nd index -> T3 and so on
+	List<Integer>[] cycles; 
+	Map<Transaction, Data> dependencies;
+	int firstU, firstP;
 	
-	public DeadlockDetector(int size) {
+	@SuppressWarnings("unchecked")
+	public DeadlockDetector(Map<Data, Queue<Transaction>> waitingQueue) {
+		firstU = -1;
+		firstP = -1;
+		getReverseMapping(waitingQueue);
+		int size = dependencies.size();
 		noOfActiveTransactions = size;
-		waitsForGraph = new int[size][size];
+		waitsForGraph = new ArrayList[size];
+		cycles = new ArrayList[size];
+		for (int i = 0; i < size; i++) 
+			waitsForGraph[i] = new ArrayList<>();
+		constructWFGraph();
 		dependencies = new LinkedHashMap<>();
 	}
 	
@@ -25,48 +36,128 @@ public class DeadlockDetector {
 			Data dataItem = element.getKey();
 			Queue<Transaction> wq = element.getValue();
 			for(Transaction t: wq) {
-				if(!dependencies.containsKey(t)) {
-					List<Data> dataList = new ArrayList<Data>();
-					dataList.add(dataItem);
-					dependencies.put(t, dataList);
-				}
-				else {
-					List<Data> dataList = dependencies.get(t);
-					dataList.add(dataItem);
-					dependencies.put(t, dataList);
-				}
+				dependencies.put(t, dataItem);
 			}
 		}
 	}
 	
-	void constructWFGraph(Map<Data, Queue<Transaction>> waitingQueue) {
-		getReverseMapping(waitingQueue);
+	void constructWFGraph() {
 		int i = 0;
-		for(Map.Entry<Transaction, List<Data>> element: dependencies.entrySet()) {
+		for(Map.Entry<Transaction, Data> element: dependencies.entrySet()) {
 			Transaction source = element.getKey();
 			Character opType = source.status.operation;
-			List<Data> dataList = dependencies.get(source);
+			Data dataItem = dependencies.get(source);
 			int j = 0;
-			for(Data dataItem: dataList) {
-				//find out which transaction possesses this data item
-				for(Transaction dest: dependencies.keySet()) {
-					if(opType.equals('R')) {
-						if(dest.readLocksPossesed.containsKey(dataItem))
-							waitsForGraph[i][j] = 1;
+			for(Transaction dest: dependencies.keySet()) {
+				if(opType.equals('R')) {
+					if(dest.readLocksPossesed.containsKey(dataItem)) {
+						waitsForGraph[i].add(j);
+						if(firstU == -1) {
+							firstU = j;
+							firstP = i;
+						}
 					}
-					else if(opType.equals('W')) {
-						if(dest.writeLockPossesed.contains(dataItem))
-							waitsForGraph[i][j] = 1;
+				}
+				else if(opType.equals('W')) {
+					if(dest.writeLockPossesed.contains(dataItem)) {
+						waitsForGraph[i].add(j);
+						if(firstU == -1) {
+							firstU = j;
+							firstP = i;
+						}
 					}
 				}
 				j++;
 			}
 			i++;
 		}
-		detectCycle();
 	}
 	
 	void detectCycle() {
-		
+		// arrays required to color the 
+	    // graph, store the parent of node 
+	    int color[] = new int [noOfActiveTransactions]; 
+	    int par[] = new int[noOfActiveTransactions];
+	    int mark[] = new int[noOfActiveTransactions];
+	    int cyclenumber = 0;
+	    
+	    // call DFS to mark the cycles 
+	    dfs_cycle(firstU, firstP, color, mark, par, cyclenumber); 
+	}
+	
+	void dfs_cycle(int u, int p, int color[],  int mark[], int par[], Integer cyclenumber) {
+		// already (completely) visited vertex. 
+	    if (color[u] == 2) { 
+	        return; 
+	    } 
+	  
+	    // seen vertex, but was not completely visited -> cycle detected. 
+	    // backtrack based on parents to find the complete cycle. 
+	    if (color[u] == 1) { 
+	  
+	        cyclenumber++; 
+	        int cur = p; 
+	        mark[cur] = cyclenumber; 
+	  
+	        // backtrack the vertex which are 
+	        // in the current cycle thats found 
+	        while (cur != u) { 
+	            cur = par[cur]; 
+	            mark[cur] = cyclenumber; 
+	        } 
+	        return; 
+	    } 
+	    par[u] = p; 
+	  
+	    // partially visited. 
+	    color[u] = 1; 
+	  
+	    // simple dfs on graph 
+	    for (int v : waitsForGraph[u]) { 
+	  
+	        // if it has not been visited previously 
+	        if (v == par[u]) { 
+	            continue; 
+	        } 
+	        dfs_cycle(v, u, color, mark, par, cyclenumber); 
+	    } 
+	  
+	    // completely visited. 
+	    color[u] = 2;
+	}
+	
+	void printCycles(int edges, int mark[], Integer cyclenumber) 
+	{ 
+	  
+	    // push the edges that into the 
+	    // cycle adjacency list 
+	    for (int i = 1; i <= edges; i++) { 
+	        if (mark[i] != 0) 
+	            cycles[mark[i]].add(i); 
+	    } 
+	  
+	    // print all the vertex with same cycle 
+	    for (int i = 1; i <= cyclenumber; i++) {
+	    	int youngestAge = Integer.MIN_VALUE;
+	    	Transaction youngest = null;
+	        for (int x : cycles[i]) {
+	        	Transaction thisTransaction = getTransactionAtIndex(x);
+	        	if(thisTransaction.startTime > youngestAge)
+	        		youngestAge = thisTransaction.startTime;
+	        	youngest = thisTransaction;
+	        }
+	        //abort(youngest);
+	    }
+	}
+	
+	//Utility function
+	Transaction getTransactionAtIndex(int index) {
+		int i = 0;
+		for(Transaction t: dependencies.keySet()) {
+			if(i == index)
+				return t;
+			i++;
+		}
+		return null;
 	}
 }
