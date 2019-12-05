@@ -22,7 +22,7 @@ import models.Data;
  */
 public class TransactionManager {
 	public static int time;
-	Map<Data, Queue<Transaction>> waitingQueue;  
+	Map<Data, Queue<Transaction>> waitingQueue;
 	List<Transaction> activeList;	
 	List<Transaction> activeListRO;
 	Map<Data, List<Site>> routes;
@@ -106,7 +106,7 @@ public class TransactionManager {
 	
 	public void releaseLocks(Transaction t)
 	{
-		HashMap<Data,Site> readLockRelease = t.readLocksPossesed;
+		Map<Data,Site> readLockRelease = t.readLocksPossesed;
 		for (Map.Entry<Data,Site> entry : readLockRelease.entrySet())
 		{
 			Data d  = entry.getKey();

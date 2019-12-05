@@ -7,40 +7,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author varada
  *
  */
-class TransactionStatus{
-	char status; //A: alive, D: dead, B: blocked
-	Character operation;	//read/write -> type of operation that the transaction is waiting for
-	Data variable;
-	int writingVal;
-	TransactionStatus(char s, Character o, Data d)
-	{
-		status = s;
-		operation = o;
-		variable = d;
-		writingVal = Integer.MAX_VALUE;
-	}
-	
-	TransactionStatus(char s, Character o, Data d, int wVal)
-	{
-		status = s;
-		operation = o;
-		variable = d;
-		writingVal = wVal;
-	}
-	
-}
 public class Transaction implements Comparable<Transaction>{
 	public final String name;
 	public final int startTime;
+	public TransactionStatus status;	//active/blocked/dead
 	public HashSet<Site> sitesAccessed = new HashSet<Site>();
-	private TransactionStatus status;	//active/blocked/dead
 	//list of locks held by it...
-	public HashMap<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
+	public Map<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
 	public HashSet<Data> writeLockPossesed = new HashSet<Data>();
 	private final String type;
 	
