@@ -73,18 +73,6 @@ public class DeadlockDetector {
 		}
 	}
 	
-	void detectCycle() {
-		// arrays required to color the 
-	    // graph, store the parent of node 
-	    int color[] = new int [noOfActiveTransactions]; 
-	    int par[] = new int[noOfActiveTransactions];
-	    int mark[] = new int[noOfActiveTransactions];
-	    int cyclenumber = 0;
-	    
-	    // call DFS to mark the cycles 
-	    dfs_cycle(firstU, firstP, color, mark, par, cyclenumber); 
-	}
-	
 	void dfs_cycle(int u, int p, int color[],  int mark[], int par[], Integer cyclenumber) {
 		// already (completely) visited vertex. 
 	    if (color[u] == 2) { 
@@ -126,7 +114,7 @@ public class DeadlockDetector {
 	    color[u] = 2;
 	}
 	
-	void printCycles(int edges, int mark[], Integer cyclenumber) 
+	void breakCycles(int edges, int mark[], Integer cyclenumber) 
 	{ 
 	  
 	    // push the edges that into the 
@@ -148,6 +136,19 @@ public class DeadlockDetector {
 	        }
 	        //abort(youngest);
 	    }
+	}
+	
+	void detectCycle() {
+		// arrays required to color the 
+	    // graph, store the parent of node 
+	    int color[] = new int [noOfActiveTransactions]; 
+	    int par[] = new int[noOfActiveTransactions];
+	    int mark[] = new int[noOfActiveTransactions];
+	    int cyclenumber = 0;
+	    
+	    // call DFS to mark the cycles 
+	    dfs_cycle(firstU, firstP, color, mark, par, cyclenumber);
+	    breakCycles(noOfActiveTransactions, mark, cyclenumber);
 	}
 	
 	//Utility function
