@@ -63,7 +63,6 @@ public class DeadlockDetector {
 				if(opType.equals('R')) {
 					if(dest.readLocksPossesed.containsKey(dataItem)) {
 						waitsForGraph[i].add(j);
-						printWFGraph();
 						if(firstU == -1) {
 							firstU = j;
 							firstP = i;
@@ -73,7 +72,6 @@ public class DeadlockDetector {
 				else if(opType.equals('W')) {
 					if(dest.writeLockPossesed.containsKey(dataItem)) {
 						waitsForGraph[i].add(j);
-						printWFGraph();
 						if(firstU == -1) {
 							firstU = j;
 							firstP = i;
@@ -82,7 +80,7 @@ public class DeadlockDetector {
 				}
 			}
 		}
-		printWFGraph();
+		//printWFGraph();
 	}
 	
 	void dfs_cycle(int u, int p, int color[],  int mark[], int par[]) {
@@ -97,7 +95,7 @@ public class DeadlockDetector {
 	        cyclenumber++; 
 	        int cur = p; 
 	        mark[cur] = cyclenumber; 
-	        System.out.println("Cyclenumber = " + cyclenumber);
+	        //System.out.println("Cyclenumber = " + cyclenumber);
 	        // backtrack the vertex which are 
 	        // in the current cycle thats found 
 	        while (cur != u) { 
@@ -145,7 +143,7 @@ public class DeadlockDetector {
 	        		youngestAge = thisTransaction.startTime;
 	        	youngest = thisTransaction;
 	        }
-	        System.out.println("Aborting " + youngest.name);
+	        //System.out.println("Aborting " + youngest.name);
 	        TransactionManager.abortBlockedTransaction(youngest, dependencies.get(youngest));
 	    }
 	}
@@ -161,11 +159,12 @@ public class DeadlockDetector {
 	    if(firstU != -1) {
 	    	//System.out.println("FirstU = " + firstU + " & firstP = " + firstP);
 	    	dfs_cycle(1, 0, color, mark, par);
-	    	System.out.println("Print cycles now");
 	    	System.out.println("Cycles = " + cyclenumber);
 		    breakCycles(noOfActiveTransactions, mark, cyclenumber);
 	    }
 	}
+	
+	//Utility functions
 	
 	void printDependenciesMap() {
 		System.out.println("Printing dependencies map");
@@ -205,7 +204,6 @@ public class DeadlockDetector {
 		return index;
 	}
 	
-	//Utility functions
 	Transaction getTransactionAtIndex(int index) {
 		String name = "T" + index;
 		for(Transaction t: dependencies.keySet()) {
