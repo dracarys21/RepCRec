@@ -143,11 +143,9 @@ W(T2,x8,88)
 end(T1)
 recover(4) 
 recover(3)
-R(T2,x3)
+R(T2,x3) 
 end(T2)
 dump()
-
-
 
 // Test 7
 // T2 should read the initial version of x3 based on multiversion read
@@ -177,7 +175,7 @@ end(T2)
 end(T3)
 
 // Test 9
-// T1, T2, T3 ok. T3 waits and then comlete after T2 commits 
+// T1, T2, T3 ok. T3 waits and then complete after T2 commits 
 begin(T3)
 begin(T1)
 begin(T2)
@@ -224,7 +222,7 @@ W(T2,x2,10)
 end(T2)
 
 // Test 13
-// T1 and T2 wait but eventually commit
+// T1 and T2 wait but eventually commit 
 begin(T1)
 begin(T2)
 begin(T3)

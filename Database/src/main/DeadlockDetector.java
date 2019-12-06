@@ -59,7 +59,7 @@ public class DeadlockDetector {
 					}
 				}
 				else if(opType.equals('W')) {
-					if(dest.writeLockPossesed.contains(dataItem)) {
+					if(dest.writeLockPossesed.containsKey(dataItem)) {
 						waitsForGraph[i].add(j);
 						if(firstU == -1) {
 							firstU = j;

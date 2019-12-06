@@ -98,12 +98,14 @@ public class TransactionManager {
 	{
 		//release read locks
 		HashMap<Data,Site> readLockRelease = t.readLocksPossesed;
+		HashSet<Data> dataLocksReleased= new HashSet<>();
 		for (Map.Entry<Data,Site> entry : readLockRelease.entrySet())
 		{
 			Data d  = entry.getKey();
 			entry.getValue().releaseReadLock(d);
+			dataLocksReleased.add(d);
 		}
-		
+		/*
 		//release write locks
 		HashMap<Data,List<Site>> writeLockRelease = t.writeLockPossesed;
 		Iterator<Entry<Data, List<Site>>> i = writeLockRelease.entrySet().iterator(); 
@@ -112,10 +114,14 @@ public class TransactionManager {
         {
         	Map.Entry<Data, List<Site>> es = i.next();
         	Data d  = es.getKey();
+        	dataLocksReleased.add(d);
         	List<Site> siteAcc = es.getValue();
         	for(Site s: siteAcc)
         		s.releaseWriteLock(d);
         }
+        
+        Iterator<Data> itr = dataLockReleased.
+        */
 	}
 	
 	public void readAction(String tname, int d)
@@ -212,7 +218,6 @@ public class TransactionManager {
 	public void availableCopies(String tname, Data d, int value)
 	{
 		Transaction t  = null;
-		boolean isBlockedTrans = false;
 		if(!waitingQueue.get(d).isEmpty())
 		{
 			t = waitingQueue.get(d).peek();//first check whether the transaction can get locks as it requires---only then remove.
@@ -222,7 +227,6 @@ public class TransactionManager {
 			activeList.remove(currTrans);
 			currTrans.changeStatusToBlocked(d, 'W',value); 
 			waitingQueue.get(d).add(currTrans);
-			isBlockedTrans = true;
 			
 			if(t.checkAction('R'))
 			{
@@ -230,6 +234,8 @@ public class TransactionManager {
 				availableCopiesRead(t,t.getActionData(),true);
 				return;
 			}
+			availableCopiesWrite(t,d, t.status.writingVal,true);	
+			return;
 		}
 		else
 		{
@@ -243,7 +249,7 @@ public class TransactionManager {
 				return;
 			}  
 		}
-		availableCopiesWrite(t,d,value,isBlockedTrans);
+		availableCopiesWrite(t,d,value,false);
 	}
 	
 	//to Peform write transaction
@@ -266,8 +272,8 @@ public class TransactionManager {
 					activeList.remove(t);
 					t.changeStatusToBlocked(d, 'W', value); 
 					waitingQueue.get(d).add(t);
-					return;
-				}			
+				}
+				return;
 			}
 		}
 		
