@@ -11,21 +11,20 @@ import models.Transaction;
 
 public class DeadlockDetector {
 	int noOfActiveTransactions;	//number of entries in dependencies map
-	List<Integer>[] waitsForGraph;	//(WRT order in dependencies map) 0th index -> T1, 1st index -> T2, 2nd index -> T3 and so on
+	List<Integer>[] waitsForGraph;
 	List<Integer>[] cycles; 
 	Map<Transaction, Data> dependencies;
 	public Map<Data, Queue<Transaction>> waitingQueue;
 	int firstU;
-	int N = 7;
+	int N = 8;
 	int cyclenumber;
 	
 	public DeadlockDetector() {
-		firstU = -1;
-		dependencies = new LinkedHashMap<>();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void checkForDeadlock() {
+		dependencies = new LinkedHashMap<>();
 		getReverseMapping(waitingQueue);
 		int size = dependencies.size();
 		noOfActiveTransactions = size;
@@ -35,6 +34,7 @@ public class DeadlockDetector {
 			waitsForGraph[i] = new ArrayList<>();
 			cycles[i] = new ArrayList<>();
 		}
+		firstU = -1;
 		constructWFGraph();
 		detectCycle();
 	}
@@ -59,7 +59,7 @@ public class DeadlockDetector {
 			Data dataItem = dependencies.get(source);
 			
 			Transaction alreadyWaiting = waitingQueue.get(dataItem).peek();
-			if(alreadyWaiting != source) {
+			if(alreadyWaiting != source && alreadyWaiting != null) {
 				int j = getTransactionIndex(alreadyWaiting);
 //				System.out.println("Source transaction = " + i);
 //				System.out.println("Found transaction " + j + " waiting for item " + dataItem.index);
@@ -134,7 +134,7 @@ public class DeadlockDetector {
 	    color[u] = 2;
 	}
 	
-	void breakCycles(int edges, int mark[], Integer cyclenumber) 
+	void breakCycles(int edges, int mark[], int cyclenumber) 
 	{ 
 	  
 	    // push the edges that into the 
@@ -165,7 +165,8 @@ public class DeadlockDetector {
 	
 	void detectCycle() {
 		// arrays required to color the 
-	    // graph, store the parent of node 
+	    // graph, store the parent of node
+		cyclenumber = 0;
 	    int color[] = new int [N]; 
 	    int par[] = new int[N];
 	    int mark[] = new int[N];
@@ -174,7 +175,7 @@ public class DeadlockDetector {
 	    if(firstU != -1) {
 	    	//System.out.println("FirstU = " + firstU + " & firstP = " + firstP);
 	    	dfs_cycle(firstU, 0, color, mark, par);
-		    breakCycles(noOfActiveTransactions, mark, cyclenumber);
+		    breakCycles(N-1, mark, cyclenumber);
 	    }
 	}
 	
