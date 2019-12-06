@@ -4,6 +4,7 @@
 package models;
 
 import java.util.*;
+import java.util.Map.Entry;
 /**
  * @author varada
  *
@@ -18,9 +19,9 @@ public class Site implements Comparable<Site>{
 	public int upTimeStamp;	//Time of becoming active
 	char status; //active, failed , recovered
 	
-	public Site(int i, List<Data> var)
+	public Site(int i, ArrayList<Data> var)
 	{
-		variables = var;
+		variables = new ArrayList<>(var);
 		readLockTable = new HashMap<>();
 		writeLockTable = new HashMap<>();
 		upTimeStamp = 0;
@@ -69,6 +70,11 @@ public class Site implements Comparable<Site>{
 		writeLockTable.put(d, t);
 	}
 	
+	public boolean checkWriteLock(Data d, Transaction t)
+	{
+		return writeLockTable.get(d)==t;
+	}
+	
 	private void initializeLockTable()
 	{
 		for(Data d: variables)
@@ -77,7 +83,7 @@ public class Site implements Comparable<Site>{
 			writeLockTable.put(d,null);
 		}
 	}
-	public int getData(Data d)
+	public int getCurrentData(Data d)
 	{
 		int index = variables.indexOf(d);
 		return variables.get(index).currentVal;
@@ -95,7 +101,7 @@ public class Site implements Comparable<Site>{
 		Data data = variables.get(index);
 		data.lastCommittedVal = data.currentVal;
 	}
-	public void failSite()
+	public HashSet<Transaction> failSite()
 	{
 		status = 'F';
 		upTimeStamp = -1;
@@ -103,6 +109,11 @@ public class Site implements Comparable<Site>{
 		{
 			v.isValid = false;
 		}
+		
+		HashSet<Transaction> transToBeAborted = new HashSet<>();
+		addToBeAbortedTransaction(readLockTable,transToBeAborted);
+		addToBeAbortedTransaction(writeLockTable,transToBeAborted);
+		return transToBeAborted;
 	}
 	
 	public void recoverSite(int timeStamp)
@@ -115,6 +126,18 @@ public class Site implements Comparable<Site>{
 	{
 		upTimeStamp = timeStamp;
 		status = 'A';
+	}
+	
+	private void addToBeAbortedTransaction(Map<Data, Transaction> m, HashSet<Transaction> ans)
+	{
+		Iterator<Entry<Data, Transaction>> i = m.entrySet().iterator();
+		while(i.hasNext())
+		{
+			Map.Entry<Data, Transaction> e = i.next();
+			if(e.getValue()!=null)
+				ans.add(e.getValue());
+			m.put(e.getKey(),null);
+		}	
 	}
 	
 	@Override

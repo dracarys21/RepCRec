@@ -26,8 +26,8 @@ public class Sim {
 		DataManager dm = new DataManager();
 		dm.createData();
 		dm.createSites();
-		//dm.printRoutes();
-		//dm.printDataOnSite();
+	//	dm.printRoutes();
+	//	dm.printDataOnSite();
 		
 		
 		Path inputFile = Paths.get("Input\\Test1.txt");
@@ -59,7 +59,8 @@ public class Sim {
 			else if(instr.equals("end"))
 			{
 				String tname = st.nextToken();
-				tm.removeFromSystem(tname);
+				if(tm.isAlive(tname))
+					tm.removeFromSystem(tname);
 			}
 			else if(instr.equals("fail"))
 			{
@@ -78,11 +79,11 @@ public class Sim {
 			}
 			else if(instr.equals("R"))
 			{
-			//	System.out.println(instr);
 				String tname = st.nextToken();
 				String varName = st.nextToken();
 				//available copies read
-				tm.readAction(tname, Integer.parseInt(varName.substring(1)));
+				if(tm.isAlive(tname))
+					tm.readAction(tname, Integer.parseInt(varName.substring(1)));
 			}
 			else if(instr.equals("W"))
 			{
@@ -92,7 +93,8 @@ public class Sim {
 				int value =  Integer.parseInt(st.nextToken());
 	//			System.out.println(varName.substring(1));
 				//available copies write
-				tm.availableCopies(tname, new Data(Integer.parseInt(varName.substring(1))), value);
+				if(tm.isAlive(tname))
+					tm.availableCopies(tname, new Data(Integer.parseInt(varName.substring(1))), value);
 			}
 			
 			TransactionManager.time++;				

@@ -28,9 +28,9 @@ public class Data implements Comparable<Data>{
 	
 	public Data(Data d)
 	{
-		index = d.index;
-		currentVal = d.currentVal;
-		lastCommittedVal = d.lastCommittedVal;
+		this.index = d.index;
+		this.currentVal = d.currentVal;
+		this.lastCommittedVal = d.lastCommittedVal;
 		isValid = d.isValid;
 	}
 	

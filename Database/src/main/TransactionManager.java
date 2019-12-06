@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 
 import models.Site;
@@ -22,10 +23,11 @@ import models.Data;
  */
 public class TransactionManager {
 	public static int time;
-	Map<Data, Queue<Transaction>> waitingQueue;
-	List<Transaction> activeList;	
-	List<Transaction> activeListRO;
-	Map<Data, List<Site>> routes;
+	static Map<Data, Queue<Transaction>> waitingQueue;  
+	static List<Transaction> activeList;	
+	static List<Transaction> activeListRO;
+	static List<Transaction> deadTransactions;
+	static Map<Data, List<Site>> routes;
 	
 	public TransactionManager()
 	{
@@ -34,6 +36,7 @@ public class TransactionManager {
 		waitingQueue = new HashMap<>();//initialize waiting queue
 		activeList = new ArrayList<>();
 		activeListRO = new ArrayList<>();
+		deadTransactions = new ArrayList<>();
 		initializeWaitingQueue();
 	}
 	
@@ -61,64 +64,55 @@ public class TransactionManager {
 			activeListRO.remove(t);
 		}
 		
-		HashSet<Site> siteAccessed = t.sitesAccessed;
-		//if a site upTime < t.startTime then abort the transaction (site has failed)
-		for(Site st: siteAccessed)
-		{
-			if(st.upTimeStamp>t.startTime || st.upTimeStamp==-1)
-			{
-				//release all its locks
-				releaseLocks(t);
-				//abort transaction 
-				System.out.println(t.name+" aborted");
-				return;
-			}
-				
-		}
-		
 		if(!t.writeLockPossesed.isEmpty()) {
 			
 		//commit data on sites -- for write
-			HashSet<Data> writeLockRelease = t.writeLockPossesed;
-			Iterator<Data> i = writeLockRelease.iterator(); 
+			HashMap<Data,List<Site>> writeLockRelease = t.writeLockPossesed;
+			Iterator<Entry<Data, List<Site>>> i = writeLockRelease.entrySet().iterator(); 
 	        while (i.hasNext()) 
 	        {
-	        	Data d  = i.next();
-	        	List<Site> siteAcc = routes.get(d);
+	        	Map.Entry<Data, List<Site>> es = (Map.Entry<Data, List<Site>>)i.next();
+	        	Data d  = es.getKey();
+	        	List<Site> siteAcc = es.getValue();
 	        	for(Site s: siteAcc)
-	        		s.commitData(d);;
+	        		s.commitData(d);
 	        }
-			
-		}
+					
 		//update value on DM -- for write
-		HashSet<Data> updateDataList = t.writeLockPossesed;
-		Iterator<Data> i = updateDataList.iterator(); 
-        while (i.hasNext()) 
-        {
-        	Data d  = i.next();
-        	List<Site> siteAcc = routes.get(d);
-        	for(Site s: siteAcc)
-        		DataManager.updateDataValues(d, d.getLastCommittedVal());
-        }
+	         i = writeLockRelease.entrySet().iterator(); 
+	        while (i.hasNext()) 
+	        {
+	        	Map.Entry<Data, List<Site>> es = i.next();
+	        	Data d  = es.getKey();
+	        	DataManager.updateDataValues(d, es.getValue().get(0).getCurrentData(d));
+	        }
+		}
 		//release all its lock.	
 		releaseLocks(t);
+		System.out.println(t.name+" commits");
+		t.changeStatusToDead();
+		deadTransactions.add(t);
 	} 
 	
 	public void releaseLocks(Transaction t)
 	{
-		Map<Data,Site> readLockRelease = t.readLocksPossesed;
+		//release read locks
+		HashMap<Data,Site> readLockRelease = t.readLocksPossesed;
 		for (Map.Entry<Data,Site> entry : readLockRelease.entrySet())
 		{
 			Data d  = entry.getKey();
 			entry.getValue().releaseReadLock(d);
 		}
 		
-		HashSet<Data> writeLockRelease = t.writeLockPossesed;
-		Iterator<Data> i = writeLockRelease.iterator(); 
+		//release write locks
+		HashMap<Data,List<Site>> writeLockRelease = t.writeLockPossesed;
+		Iterator<Entry<Data, List<Site>>> i = writeLockRelease.entrySet().iterator(); 
+		
         while (i.hasNext()) 
         {
-        	Data d  = i.next();
-        	List<Site> siteAcc = routes.get(d);
+        	Map.Entry<Data, List<Site>> es = i.next();
+        	Data d  = es.getKey();
+        	List<Site> siteAcc = es.getValue();
         	for(Site s: siteAcc)
         		s.releaseWriteLock(d);
         }
@@ -157,17 +151,17 @@ public class TransactionManager {
 		{
 			t = getActiveTransaction(tname,activeList,"RW");
 			//if transaction already has readLock/writeLock on the variable then new lock is not necessary
-			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.contains(d))
+			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.containsKey(d))
 			{
 				//read the value
-				System.out.println(t.name+" reads data"+d.index);
+				System.out.println(t.name+" reads data"+d.index+" at site"+t.readLocksPossesed.get(d));
 				return;
 			}
 		}
 		availableCopiesRead(t,d,isBlockedTrans);
 	}
 	
-	//to Peform Read transaction
+	//to Perform Read transaction
 	private void availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
 	{
 		//get sites for the data.
@@ -194,9 +188,11 @@ public class TransactionManager {
 					
 					s.setReadLock(d,t);
 					t.readLocksPossesed.put(d,s);
-					t.sitesAccessed.add(s);	
+					
+					if(!t.sitesAccessed.contains(s))
+						t.sitesAccessed.add(s);	
 					//read the value
-					System.out.println(t.name+" site:"+s.index+" "+s.getData(d));
+					System.out.println(t.name+" site:"+s.index+" data:"+d.index+" "+s.getCurrentData(d));
 				}
 				//site not found
 				else
@@ -239,11 +235,11 @@ public class TransactionManager {
 		{
 			t = getActiveTransaction(tname,activeList,"RW"); 
 			//if transaction already has writeLock on the variable then new lock is not necessary
-			if(t.writeLockPossesed.contains(d))
+			if(t.writeLockPossesed.containsKey(d))
 			{
-				List<Site> sitesfordata = routes.get(d);
+				List<Site> sitesfordata = t.writeLockPossesed.get(d);
 				for(Site st:sitesfordata )
-					st.setData(d, value);	
+					 st.setData(d, value);	
 				return;
 			}  
 		}
@@ -253,7 +249,6 @@ public class TransactionManager {
 	//to Peform write transaction
 	private void availableCopiesWrite(Transaction t, Data d, int value, boolean isBlockedTrans)
 	{
-
 		//get sites for the data.
 		List<Site> sitesfordata = routes.get(d);
 		//check status of each site for variable d
@@ -277,20 +272,21 @@ public class TransactionManager {
 		}
 		
 		System.out.println(t.name+" writing "+d.index);
-		//get write locks on all sites
+		List<Site> acquiredLocksOnSites = new ArrayList<>();
+		//get write locks on all up sites
 		for(Site st:sitesfordata )
 		{
 			if(!st.checkSiteStatus('F')) {
 				st.setWriteLock(d,t);
 				t.sitesAccessed.add(st);
+				acquiredLocksOnSites.add(st);
 			}
 		}
 		
-		t.writeLockPossesed.add(d);	
+		t.writeLockPossesed.put(d,acquiredLocksOnSites);	
 		
 		//perform write.
-		for(Site st:sitesfordata )
-			if(!st.checkSiteStatus('F')) 
+		for(Site st:t.writeLockPossesed.get(d) )
 				st.setData(d, value);
 		
 		//if blocked transaction--make it active
@@ -305,6 +301,39 @@ public class TransactionManager {
 	public void multiversionRead(String tname, Data d)
 	{
 		
+	}
+	
+	//change Site Status to failed
+	public void failSite(int sindex)
+	{
+		int index = DataManager.sites.indexOf(new Site(sindex));
+		Site s = DataManager.sites.get(index);
+		HashSet<Transaction> transToBeAborted= s.failSite();	
+		Iterator<Transaction> i = transToBeAborted.iterator();
+		while(i.hasNext())
+		{
+			abortTransaction(i.next());
+		}	
+	}
+	
+	public boolean isAlive(String  tname)
+	{
+		return deadTransactions.stream().filter(t ->t.name.equals(tname)).count()==0;
+	}
+	
+	private void abortTransaction(Transaction t)
+	{
+		if(activeList.contains(t))
+		{	
+			activeList.remove(t);
+			releaseLocks(t);
+		}
+		else
+			activeListRO.remove(t);
+		
+		System.out.println(t.name+" aborted");
+		t.changeStatusToDead();
+		deadTransactions.add(t);
 	}
 	
 	public void dump()
@@ -326,15 +355,6 @@ public class TransactionManager {
 		{
 			System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
 		}
-	}
-	
-	
-	//change Site Status to failed
-	public void failSite(int sindex)
-	{
-		int index = DataManager.sites.indexOf(new Site(sindex));
-		Site s = DataManager.sites.get(index);
-		s.failSite();	
 	}
 	
 	//change Site Status to recover
@@ -361,5 +381,4 @@ public class TransactionManager {
 			return list.get(index);
 		return null;		
 	}
-	
 }
