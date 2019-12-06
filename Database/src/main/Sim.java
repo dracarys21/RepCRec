@@ -30,7 +30,7 @@ public class Sim {
 	//	dm.printDataOnSite();
 		
 		
-		Path inputFile = Paths.get("Input\\Test1.txt");
+		Path inputFile = Paths.get("Input/Test1.txt");
 		File file = inputFile.toFile(); 
 		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(file); 
