@@ -94,7 +94,7 @@ public class Transaction implements Comparable<Transaction>{
 	{
 		final int prime = 31;
 		int result = 17; 
-		result = prime * result +  name.hashCode();
+		result = prime * result + name.hashCode();
 		return result;
 	}
 	
