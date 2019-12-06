@@ -28,9 +28,11 @@ public class TransactionManager {
 	static List<Transaction> activeListRO;
 	static List<Transaction> deadTransactions;
 	static Map<Data, List<Site>> routes;
+	DeadlockDetector detector;
 	
 	public TransactionManager()
 	{
+		detector = new DeadlockDetector();
 		time = 0;
 		routes = DataManager.routes;
 		waitingQueue = new HashMap<>();//initialize waiting queue
@@ -139,6 +141,8 @@ public class TransactionManager {
 			activeList.remove(currTrans);
 			currTrans.changeStatusToBlocked(d, 'R'); 
 			waitingQueue.get(d).add(currTrans);
+			detector.waitingQueue = waitingQueue;
+			//detector.checkForDeadlock();
 			isBlockedTrans = true;
 			
 			if(t.checkAction('W'))
@@ -204,6 +208,8 @@ public class TransactionManager {
 						activeList.remove(t);
 						t.changeStatusToBlocked(d, 'R'); 
 						waitingQueue.get(d).add(t);
+						detector.waitingQueue = waitingQueue;
+						//detector.checkForDeadlock();
 					}
 				}
 		}
@@ -222,6 +228,8 @@ public class TransactionManager {
 			activeList.remove(currTrans);
 			currTrans.changeStatusToBlocked(d, 'W',value); 
 			waitingQueue.get(d).add(currTrans);
+			detector.waitingQueue = waitingQueue;
+			//detector.checkForDeadlock();
 			isBlockedTrans = true;
 			
 			if(t.checkAction('R'))
@@ -266,6 +274,8 @@ public class TransactionManager {
 					activeList.remove(t);
 					t.changeStatusToBlocked(d, 'W', value); 
 					waitingQueue.get(d).add(t);
+					detector.waitingQueue = waitingQueue;
+					//detector.checkForDeadlock();
 					return;
 				}			
 			}

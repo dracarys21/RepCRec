@@ -14,21 +14,27 @@ public class DeadlockDetector {
 	List<Integer>[] waitsForGraph;	//(WRT order in dependencies map) 0th index -> T1, 1st index -> T2, 2nd index -> T3 and so on
 	List<Integer>[] cycles; 
 	Map<Transaction, Data> dependencies;
+	public Map<Data, Queue<Transaction>> waitingQueue;
 	int firstU, firstP;
 	
-	@SuppressWarnings("unchecked")
-	public DeadlockDetector(Map<Data, Queue<Transaction>> waitingQueue) {
+	public DeadlockDetector() {
 		firstU = -1;
 		firstP = -1;
+		dependencies = new LinkedHashMap<>();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void checkForDeadlock() {
+		System.out.println("Checking for deadlock...");
 		getReverseMapping(waitingQueue);
 		int size = dependencies.size();
 		noOfActiveTransactions = size;
-		waitsForGraph = new ArrayList[size];
 		cycles = new ArrayList[size];
+		waitsForGraph = new ArrayList[size];
 		for (int i = 0; i < size; i++) 
 			waitsForGraph[i] = new ArrayList<>();
 		constructWFGraph();
-		dependencies = new LinkedHashMap<>();
+		detectCycle();
 	}
 	
 	void getReverseMapping(Map<Data, Queue<Transaction>> waitingQueue) {
@@ -71,6 +77,8 @@ public class DeadlockDetector {
 			}
 			i++;
 		}
+		System.out.println("Dependencies map is:");
+		System.out.println(dependencies);
 	}
 	
 	void dfs_cycle(int u, int p, int color[],  int mark[], int par[], Integer cyclenumber) {
