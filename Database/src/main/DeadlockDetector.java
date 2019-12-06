@@ -16,7 +16,7 @@ public class DeadlockDetector {
 	Map<Transaction, Data> dependencies;
 	public Map<Data, Queue<Transaction>> waitingQueue;
 	int firstU, firstP;
-	int N = 5;
+	int N = 7;
 	int cyclenumber;
 	
 	public DeadlockDetector() {
@@ -48,8 +48,8 @@ public class DeadlockDetector {
 				dependencies.put(t, dataItem);
 			}
 		}
-//		printWaitingQueue();
-//		printDependenciesMap();
+		//printWaitingQueue();
+		//printDependenciesMap();
 	}
 	
 	void constructWFGraph() {
@@ -61,7 +61,7 @@ public class DeadlockDetector {
 			for(Transaction dest: dependencies.keySet()) {
 				int j = getTransactionIndex(dest);
 				if(opType.equals('R')) {
-					if(dest.readLocksPossesed.containsKey(dataItem)) {
+					if(dest.writeLockPossesed.containsKey(dataItem)) {
 						waitsForGraph[i].add(j);
 						if(firstU == -1) {
 							firstU = j;
@@ -69,8 +69,9 @@ public class DeadlockDetector {
 						}
 					}
 				}
-				else if(opType.equals('W')) {
-					if(dest.writeLockPossesed.containsKey(dataItem)) {
+				else {
+					if(dest.writeLockPossesed.containsKey(dataItem) ||
+							dest.readLocksPossesed.containsKey(dataItem)) {
 						waitsForGraph[i].add(j);
 						if(firstU == -1) {
 							firstU = j;
