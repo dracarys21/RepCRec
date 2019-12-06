@@ -13,8 +13,8 @@ public class Site implements Comparable<Site>{
 	public final int index; //for identifying each site:
 	
 	public List<Data> variables;
-	
-	private Map<Data, Transaction> readLockTable; // need to keep track of transaction acquiring locks for integrity
+
+	private Map<Data, List<Transaction>> readLockTable; // need to keep track of transaction acquiring locks for integrity
 	private Map<Data, Transaction> writeLockTable;
 	public int upTimeStamp;	//Time of becoming active
 	char status; //active, failed , recovered
@@ -49,18 +49,23 @@ public class Site implements Comparable<Site>{
 	
 	public boolean isWriteLockAvailable(Data d)
 	{
-		return (writeLockTable.get(d)==null && readLockTable.get(d)==null);
+		return (writeLockTable.get(d)==null && readLockTable.get(d).isEmpty());
 	}
 	
 	public void setReadLock(Data d, Transaction t)
 	{
-		readLockTable.put(d, t);
+		List<Transaction> l = readLockTable.get(d);
+		l.add(t);
+		readLockTable.put(d, l);
 	}
 	
-	public void releaseReadLock(Data d)
+	public void releaseReadLock(Data d, Transaction t)
 	{
-		readLockTable.put(d,null);
+		List<Transaction> l = readLockTable.get(d);
+		l.remove(t);
+		readLockTable.put(d,l);
 	}
+	
 	public void releaseWriteLock(Data d)
 	{
 		writeLockTable.put(d,null);
@@ -79,7 +84,7 @@ public class Site implements Comparable<Site>{
 	{
 		for(Data d: variables)
 		{
-			readLockTable.put(d,null);
+			readLockTable.put(d,new ArrayList<>());
 			writeLockTable.put(d,null);
 		}
 	}
@@ -111,8 +116,28 @@ public class Site implements Comparable<Site>{
 		}
 		
 		HashSet<Transaction> transToBeAborted = new HashSet<>();
-		addToBeAbortedTransaction(readLockTable,transToBeAborted);
-		addToBeAbortedTransaction(writeLockTable,transToBeAborted);
+		
+		Iterator<Entry<Data, List<Transaction>>> itr = readLockTable.entrySet().iterator();
+		
+		while(itr.hasNext())
+		{
+			Map.Entry<Data, List<Transaction>> e = itr.next();
+			if(!e.getValue().isEmpty())
+			{
+				for(Transaction lt: e.getValue())
+					transToBeAborted.add(lt);
+			}
+			readLockTable.put(e.getKey(),new ArrayList<>());
+		}
+			
+		Iterator<Entry<Data, Transaction>> i = writeLockTable.entrySet().iterator();
+		while(i.hasNext())
+		{
+			Map.Entry<Data, Transaction> e = i.next();
+			if(e.getValue()!=null)
+				transToBeAborted.add(e.getValue());
+			writeLockTable.put(e.getKey(),null);
+		}
 		return transToBeAborted;
 	}
 	
@@ -130,14 +155,7 @@ public class Site implements Comparable<Site>{
 	
 	private void addToBeAbortedTransaction(Map<Data, Transaction> m, HashSet<Transaction> ans)
 	{
-		Iterator<Entry<Data, Transaction>> i = m.entrySet().iterator();
-		while(i.hasNext())
-		{
-			Map.Entry<Data, Transaction> e = i.next();
-			if(e.getValue()!=null)
-				ans.add(e.getValue());
-			m.put(e.getKey(),null);
-		}	
+		
 	}
 	
 	@Override
