@@ -19,9 +19,6 @@ public class DeadlockDetector {
 	int N = 8;
 	int cyclenumber;
 	
-	public DeadlockDetector() {
-	}
-	
 	@SuppressWarnings("unchecked")
 	public void checkForDeadlock() {
 		dependencies = new LinkedHashMap<>();
