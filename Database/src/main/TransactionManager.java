@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Queue;
 
 import models.Site;
@@ -87,9 +88,10 @@ public class TransactionManager {
 	        	DataManager.updateDataValues(d, es.getValue().get(0).getCurrentData(d));
 	        }
 		}
+		
+		System.out.println(t.name+" commits");
 		//release all its lock.	
 		releaseLocks(t);
-		System.out.println(t.name+" commits");
 		t.changeStatusToDead();
 		deadTransactions.add(t);
 	} 
@@ -102,10 +104,10 @@ public class TransactionManager {
 		for (Map.Entry<Data,Site> entry : readLockRelease.entrySet())
 		{
 			Data d  = entry.getKey();
-			entry.getValue().releaseReadLock(d);
+			entry.getValue().releaseReadLock(d,t);
 			dataLocksReleased.add(d);
 		}
-		/*
+
 		//release write locks
 		HashMap<Data,List<Site>> writeLockRelease = t.writeLockPossesed;
 		Iterator<Entry<Data, List<Site>>> i = writeLockRelease.entrySet().iterator(); 
@@ -120,8 +122,20 @@ public class TransactionManager {
         		s.releaseWriteLock(d);
         }
         
-        Iterator<Data> itr = dataLockReleased.
-        */
+        Iterator<Data> itr = dataLocksReleased.iterator();
+        while(itr.hasNext())
+        {
+        	Data key = itr.next();
+        	if(!waitingQueue.get(key).isEmpty()) {
+        		Transaction bt = waitingQueue.get(key).peek();
+        		if(bt.getType().equals("RW"))
+        			if(bt.status.operation=='R')
+        				availableCopiesRead(bt,bt.getActionData(),true);
+        			else
+        				availableCopiesWrite(bt,bt.getActionData(),bt.status.writingVal,true);
+        	}
+        }
+        
 	}
 	
 	public void readAction(String tname, int d)
@@ -168,7 +182,7 @@ public class TransactionManager {
 	}
 	
 	//to Perform Read transaction
-	private void availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
+	private boolean availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
 	{
 		//get sites for the data.
 				Site s = null;
@@ -199,6 +213,7 @@ public class TransactionManager {
 						t.sitesAccessed.add(s);	
 					//read the value
 					System.out.println(t.name+" site:"+s.index+" data:"+d.index+" "+s.getCurrentData(d));
+					return true;
 				}
 				//site not found
 				else
@@ -211,6 +226,7 @@ public class TransactionManager {
 						t.changeStatusToBlocked(d, 'R'); 
 						waitingQueue.get(d).add(t);
 					}
+					return false;
 				}
 		}
 	
@@ -231,7 +247,18 @@ public class TransactionManager {
 			if(t.checkAction('R'))
 			{
 				//implement AC for read for transaction t
-				availableCopiesRead(t,t.getActionData(),true);
+				boolean succ = availableCopiesRead(t,t.getActionData(),true);
+				if(!succ)
+				{
+						Optional<Transaction>qt =  waitingQueue.get(d).stream().filter(te -> te.status.operation=='W').findFirst();
+						if(qt.isPresent())
+						{
+							Transaction te = qt.get();
+							waitingQueue.get(d).remove(te);
+							activeList.add(te);
+							availableCopiesWrite(te,te.getActionData(),te.status.writingVal,false);
+						}
+				}
 				return;
 			}
 			availableCopiesWrite(t,d, t.status.writingVal,true);	

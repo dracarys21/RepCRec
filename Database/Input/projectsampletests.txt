@@ -128,7 +128,7 @@ recover(2)
 end(T1)
 
 
-// Test 6 -- Huh???
+// Test 6
 // T1 ok. T2 ok. T2 reads from a recovering site, but odd variables only
 // at that site
 // At the dump, sites 3 and 4 would have their original values for x8.
