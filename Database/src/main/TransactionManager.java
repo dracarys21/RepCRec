@@ -385,7 +385,7 @@ public class TransactionManager {
 		Queue<Transaction> wq = waitingQueue.get(d);
 		wq.remove(t);
 		releaseLocks(t);
-		System.out.println(t.name+" aborts");
+		System.out.println(t.name+" aborted");
 		t.changeStatusToDead();
 		deadTransactions.add(t);
 	}
