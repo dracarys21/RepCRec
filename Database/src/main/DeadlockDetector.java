@@ -134,7 +134,7 @@ public class DeadlockDetector {
 	        		youngestAge = thisTransaction.startTime;
 	        	youngest = thisTransaction;
 	        }
-	        //abort(youngest);
+	        //abortTransaction(youngest);
 	    }
 	}
 	
