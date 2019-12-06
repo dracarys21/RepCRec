@@ -15,13 +15,12 @@ public class DeadlockDetector {
 	List<Integer>[] cycles; 
 	Map<Transaction, Data> dependencies;
 	public Map<Data, Queue<Transaction>> waitingQueue;
-	int firstU, firstP;
+	int firstU;
 	int N = 7;
 	int cyclenumber;
 	
 	public DeadlockDetector() {
 		firstU = -1;
-		firstP = -1;
 		dependencies = new LinkedHashMap<>();
 	}
 	
@@ -58,27 +57,38 @@ public class DeadlockDetector {
 			int i = getTransactionIndex(source);
 			Character opType = source.status.operation;
 			Data dataItem = dependencies.get(source);
-			for(Transaction dest: dependencies.keySet()) {
-				int j = getTransactionIndex(dest);
-				if(opType.equals('R')) {
-					if(dest.writeLockPossesed.containsKey(dataItem)) {
-						waitsForGraph[i].add(j);
-						if(firstU == -1) {
-							firstU = j;
-							firstP = i;
+			
+			Transaction alreadyWaiting = waitingQueue.get(dataItem).peek();
+			if(alreadyWaiting != source) {
+				int j = getTransactionIndex(alreadyWaiting);
+//				System.out.println("Source transaction = " + i);
+//				System.out.println("Found transaction " + j + " waiting for item " + dataItem.index);
+				waitsForGraph[i].add(j);
+				if(firstU == -1) {
+					firstU = i;
+				}
+			}
+			
+			else {
+				for (Transaction dest : dependencies.keySet()) {
+					int j = getTransactionIndex(dest);
+					if (opType.equals('R')) {
+						if (dest.writeLockPossesed.containsKey(dataItem)) {
+							waitsForGraph[i].add(j);
+							if (firstU == -1) {
+								firstU = i;
+							}
+						}
+					} else {
+						if (dest.writeLockPossesed.containsKey(dataItem)
+								|| dest.readLocksPossesed.containsKey(dataItem)) {
+							waitsForGraph[i].add(j);
+							if (firstU == -1) {
+								firstU = i;
+							}
 						}
 					}
-				}
-				else {
-					if(dest.writeLockPossesed.containsKey(dataItem) ||
-							dest.readLocksPossesed.containsKey(dataItem)) {
-						waitsForGraph[i].add(j);
-						if(firstU == -1) {
-							firstU = j;
-							firstP = i;
-						}
-					}
-				}
+				} 
 			}
 		}
 		//printWFGraph();
@@ -163,7 +173,7 @@ public class DeadlockDetector {
 	    // call DFS to mark the cycles
 	    if(firstU != -1) {
 	    	//System.out.println("FirstU = " + firstU + " & firstP = " + firstP);
-	    	dfs_cycle(1, 0, color, mark, par);
+	    	dfs_cycle(firstU, 0, color, mark, par);
 		    breakCycles(noOfActiveTransactions, mark, cyclenumber);
 	    }
 	}
@@ -195,7 +205,7 @@ public class DeadlockDetector {
 			System.out.print("For transaction # " + i + ": ");
 			List<Integer> list = waitsForGraph[i];
 			for(int j: list) {
-				System.out.print(j + " ");
+				System.out.print("Transaction # " + j + " ");
 			}
 			System.out.println("");
 		}

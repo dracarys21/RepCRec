@@ -164,7 +164,8 @@ public class TransactionManager {
 			detector.waitingQueue = waitingQueue;
 			detector.checkForDeadlock();
 			isBlockedTrans = true;
-			
+			if(waitingQueue.get(d).isEmpty())
+				return;
 			if(t.checkAction('W'))
 			{//implement AC for write for transaction t
 				availableCopiesWrite(t,t.getActionData(),t.getWriteValue(),true);
@@ -251,7 +252,8 @@ public class TransactionManager {
 			waitingQueue.get(d).add(currTrans);
 			detector.waitingQueue = waitingQueue;
 			detector.checkForDeadlock();
-			
+			if(waitingQueue.get(d).isEmpty())
+				return;
 			if(t.checkAction('R'))
 			{
 				//implement AC for read for transaction t
