@@ -16,7 +16,7 @@ public class Transaction implements Comparable<Transaction>{
 	public final String name;
 	public final int startTime;
 	public HashSet<Site> sitesAccessed = new HashSet<>();
-	private TransactionStatus status;	//active/blocked/dead
+	public TransactionStatus status;	//active/blocked/dead
 	//list of locks held by it...
 	public HashMap<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
 	public HashMap<Data,List<Site>> writeLockPossesed = new HashMap<Data,List<Site>>();

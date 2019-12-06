@@ -336,6 +336,14 @@ public class TransactionManager {
 		deadTransactions.add(t);
 	}
 	
+	public static void abortBlockedTransaction(Transaction t, Data d) {
+		Queue<Transaction> wq = waitingQueue.get(d);
+		wq.remove(t);
+		System.out.println(t.name+" aborted");
+		t.changeStatusToDead();
+		deadTransactions.add(t);
+	}
+	
 	public void dump()
 	{
 		List<Site> s = new ArrayList<>(DataManager.sites);
