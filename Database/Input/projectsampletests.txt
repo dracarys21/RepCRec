@@ -72,7 +72,7 @@ R(T1,x3)
 W(T2,x8,88) 
 fail(2)
 R(T2,x3)
-W(T1, x4,91)
+W(T1,x4,91)
 recover(2)
 end(T2)
 end(T1)
@@ -94,7 +94,7 @@ W(T2,x8,88)
 fail(2)
 R(T2,x3)
 recover(2)
-W(T1, x4,91)
+W(T1,x4,91)
 end(T2)
 end(T1)
 
@@ -128,7 +128,7 @@ recover(2)
 end(T1)
 
 
-// Test 6
+// Test 6 -- Huh???
 // T1 ok. T2 ok. T2 reads from a recovering site, but odd variables only
 // at that site
 // At the dump, sites 3 and 4 would have their original values for x8.
