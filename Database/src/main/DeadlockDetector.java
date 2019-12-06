@@ -136,15 +136,19 @@ public class DeadlockDetector {
 	    // print all the vertex with same cycle 
 	    for (int i = 1; i <= cyclenumber; i++) {
 	    	int youngestAge = Integer.MIN_VALUE;
+	    	Data d = null;
 	    	Transaction youngest = null;
 	        for (int x : cycles[i]) {
 	        	Transaction thisTransaction = getTransactionAtIndex(x);
-	        	if(thisTransaction.startTime > youngestAge)
+	        	if(thisTransaction.startTime > youngestAge) {
 	        		youngestAge = thisTransaction.startTime;
-	        	youngest = thisTransaction;
+		        	youngest = thisTransaction;
+		        	d = dependencies.get(youngest);
+	        	}
 	        }
 	        //System.out.println("Aborting " + youngest.name);
 	        TransactionManager.abortBlockedTransaction(youngest, dependencies.get(youngest));
+	        TransactionManager.postDeadlock(d);
 	    }
 	}
 	
@@ -159,7 +163,6 @@ public class DeadlockDetector {
 	    if(firstU != -1) {
 	    	//System.out.println("FirstU = " + firstU + " & firstP = " + firstP);
 	    	dfs_cycle(1, 0, color, mark, par);
-	    	System.out.println("Cycles = " + cyclenumber);
 		    breakCycles(noOfActiveTransactions, mark, cyclenumber);
 	    }
 	}

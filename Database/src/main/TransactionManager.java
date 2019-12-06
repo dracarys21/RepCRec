@@ -29,7 +29,7 @@ public class TransactionManager {
 	static List<Transaction> activeListRO;
 	static List<Transaction> deadTransactions;
 	static Map<Data, List<Site>> routes;
-	DeadlockDetector detector;
+	static DeadlockDetector detector;
 	
 	public TransactionManager()
 	{
@@ -43,7 +43,7 @@ public class TransactionManager {
 		initializeWaitingQueue();
 	}
 	
-	public void addToSystem(Transaction t)
+	public static void addToSystem(Transaction t)
 	{
 		if(t.getType().equals("RW"))
 			activeList.add(t);
@@ -51,7 +51,7 @@ public class TransactionManager {
 			activeListRO.add(t);
 	}
 	
-	public void removeFromSystem(String tName)
+	public static void removeFromSystem(String tName)
 	{
 		//get transaction type -- from RW/RO list
 		//remove transaction from the list RW/RO
@@ -98,7 +98,7 @@ public class TransactionManager {
 		deadTransactions.add(t);
 	} 
 	
-	public void releaseLocks(Transaction t)
+	public static void releaseLocks(Transaction t)
 	{
 		//release read locks
 		HashMap<Data,Site> readLockRelease = t.readLocksPossesed;
@@ -140,7 +140,7 @@ public class TransactionManager {
         
 	}
 	
-	public void readAction(String tname, int d)
+	public static void readAction(String tname, int d)
 	{
 		if(getActiveTransaction(tname,activeList,"RW")!=null)
 			availableCopies(tname, new Data(d));
@@ -149,7 +149,7 @@ public class TransactionManager {
 	}
 	
 	//to Decide which transaction to execute
-	public void availableCopies(String tname, Data d)
+	public static void availableCopies(String tname, Data d)
 	{
 		Transaction t  = null;
 		boolean isBlockedTrans = false;
@@ -186,7 +186,7 @@ public class TransactionManager {
 	}
 	
 	//to Perform Read transaction
-	private boolean availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
+	static boolean availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
 	{
 		//get sites for the data.
 				Site s = null;
@@ -237,7 +237,7 @@ public class TransactionManager {
 		}
 	
 	//to Decide which transaction to execute
-	public void availableCopies(String tname, Data d, int value)
+	public static void availableCopies(String tname, Data d, int value)
 	{
 		Transaction t  = null;
 		if(!waitingQueue.get(d).isEmpty())
@@ -288,7 +288,7 @@ public class TransactionManager {
 	}
 	
 	//to Peform write transaction
-	private void availableCopiesWrite(Transaction t, Data d, int value, boolean isBlockedTrans)
+	private static void availableCopiesWrite(Transaction t, Data d, int value, boolean isBlockedTrans)
 	{
 		//get sites for the data.
 		List<Site> sitesfordata = routes.get(d);
@@ -341,13 +341,13 @@ public class TransactionManager {
 		}
 	}
 	
-	public void multiversionRead(String tname, Data d)
+	public static void multiversionRead(String tname, Data d)
 	{
 		
 	}
 	
 	//change Site Status to failed
-	public void failSite(int sindex)
+	public static void failSite(int sindex)
 	{
 		int index = DataManager.sites.indexOf(new Site(sindex));
 		Site s = DataManager.sites.get(index);
@@ -359,12 +359,12 @@ public class TransactionManager {
 		}	
 	}
 	
-	public boolean isAlive(String  tname)
+	public static boolean isAlive(String  tname)
 	{
 		return deadTransactions.stream().filter(t ->t.name.equals(tname)).count()==0;
 	}
 	
-	private void abortTransaction(Transaction t)
+	private static void abortTransaction(Transaction t)
 	{
 		if(activeList.contains(t))
 		{	
@@ -382,12 +382,13 @@ public class TransactionManager {
 	public static void abortBlockedTransaction(Transaction t, Data d) {
 		Queue<Transaction> wq = waitingQueue.get(d);
 		wq.remove(t);
-		System.out.println(t.name+" aborted");
+		releaseLocks(t);
+		System.out.println(t.name+" aborts");
 		t.changeStatusToDead();
 		deadTransactions.add(t);
 	}
 	
-	public void dump()
+	public static void dump()
 	{
 		List<Site> s = new ArrayList<>(DataManager.sites);
 		Collections.sort(s);
@@ -409,14 +410,14 @@ public class TransactionManager {
 	}
 	
 	//change Site Status to recover
-	public void recoverSite(int sindex)
+	public static void recoverSite(int sindex)
 	{
 		int index = DataManager.sites.indexOf(new Site(sindex));
 		Site s = DataManager.sites.get(index);
 		s.recoverSite(time);
 	}
 	
-	private void initializeWaitingQueue()
+	private static void initializeWaitingQueue()
 	{
 		for(int i = 1;  i<=20; i++ )
 		{
@@ -425,11 +426,22 @@ public class TransactionManager {
 	}
 	
 	/*Get active transaction by name*/
-	private Transaction getActiveTransaction(String tname, List<Transaction> list, String type)
+	private static Transaction getActiveTransaction(String tname, List<Transaction> list, String type)
 	{
 		int index = list.indexOf(new Transaction(tname,type));
 		if(index!=-1)
 			return list.get(index);
 		return null;		
+	}
+	
+	public static void postDeadlock(Data d) {
+		Queue<Transaction> q = waitingQueue.get(d);
+		while(!q.isEmpty()) {
+			Transaction t = q.remove();
+			if(t.status.operation.equals('R'))
+				availableCopiesRead(t, d, true);
+			else
+				availableCopiesWrite(t, d, t.getWriteValue(), true);
+		}
 	}
 }
