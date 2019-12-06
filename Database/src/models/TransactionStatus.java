@@ -8,7 +8,7 @@ public class TransactionStatus{
 	char status; //A: alive, D: dead, B: blocked
 	public Character operation;	//read/write -> type of operation that the transaction wants to do
 	Data variable;
-	int writingVal;
+	public int writingVal;
 	public TransactionStatus(char s, Character o, Data d)
 	{
 		status = s;

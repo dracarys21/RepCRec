@@ -44,12 +44,12 @@ public class Site implements Comparable<Site>{
 	{
 		int index = variables.indexOf(d);
 		Data data = variables.get(index);
-		return (writeLockTable.get(d)==null)&&data.isValid;		
+		return (writeLockTable.get(d)==null)&&(data.isValid||data.index%2==1);		
 	}
 	
 	public boolean isWriteLockAvailable(Data d)
 	{
-		return (writeLockTable.get(d)==null|| readLockTable.get(d)==null);
+		return (writeLockTable.get(d)==null && readLockTable.get(d)==null);
 	}
 	
 	public void setReadLock(Data d, Transaction t)
