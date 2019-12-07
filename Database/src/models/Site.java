@@ -153,11 +153,6 @@ public class Site implements Comparable<Site>{
 		status = 'A';
 	}
 	
-	private void addToBeAbortedTransaction(Map<Data, Transaction> m, HashSet<Transaction> ans)
-	{
-		
-	}
-	
 	@Override
 	public boolean equals(Object o) {
 		if(o==this)
