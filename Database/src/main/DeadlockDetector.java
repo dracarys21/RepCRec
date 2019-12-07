@@ -44,8 +44,8 @@ public class DeadlockDetector {
 				dependencies.put(t, dataItem);
 			}
 		}
-		//printWaitingQueue();
-		//printDependenciesMap();
+//		printWaitingQueue();
+//		printDependenciesMap();
 	}
 	
 	void constructWFGraph() {
