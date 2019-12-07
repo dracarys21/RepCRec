@@ -3,6 +3,9 @@
  */
 package models;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 /**
  * @author varada
  *
@@ -13,12 +16,14 @@ public class Data implements Comparable<Data>{
 	int currentVal;
 	int lastCommittedVal;
 	boolean isValid;
+	HashMap<Integer, Integer> committedTimestamps;
 	
 	public Data( int i, int initialVal){
 		currentVal = initialVal;
 		lastCommittedVal = initialVal;
 		index = i;
 		isValid=true;
+		committedTimestamps = new LinkedHashMap<>();
 	}
 	
 	public Data(int i)
