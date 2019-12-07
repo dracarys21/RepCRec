@@ -93,6 +93,12 @@ public class Site implements Comparable<Site>{
 		int index = variables.indexOf(d);
 		return variables.get(index).currentVal;
 	}
+	
+	public Data getRODataItem(Data d) {
+		int index = variables.indexOf(d);
+		return variables.get(index);
+	}
+	
 	public void setData(Data d, int v)
 	{
 		int index = variables.indexOf(d);
@@ -105,6 +111,7 @@ public class Site implements Comparable<Site>{
 		int index = variables.indexOf(d);
 		Data data = variables.get(index);
 		data.lastCommittedVal = data.currentVal;
+		data.hasCommitted = true;
 	}
 	public HashSet<Transaction> failSite()
 	{
@@ -113,6 +120,7 @@ public class Site implements Comparable<Site>{
 		for(Data v: variables)
 		{
 			v.isValid = false;
+			v.hasCommitted = false;
 		}
 		
 		HashSet<Transaction> transToBeAborted = new HashSet<>();

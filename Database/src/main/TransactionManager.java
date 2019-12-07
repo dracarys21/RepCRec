@@ -178,8 +178,9 @@ public class TransactionManager {
 			//if transaction already has readLock/writeLock on the variable then new lock is not necessary
 			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.containsKey(d))
 			{
+				Site sacc = t.readLocksPossesed.get(d);
 				//read the value
-				System.out.println(t.name+" reads data"+d.index+" at site"+t.readLocksPossesed.get(d));
+				System.out.println(t.name+" reads data"+d.index+":"+sacc.getCurrentData(d)+" at site"+sacc);
 				return;
 			}
 		}
@@ -343,9 +344,15 @@ public class TransactionManager {
 		}
 	}
 	
-	public static void multiversionRead(String tname, Data d)
-	{
-		
+	public static void multiversionRead(String tname, Data d) {
+		Transaction t = getActiveTransaction(tname, activeListRO, "RO");
+		if(!t.snapshot.containsKey(d.index)) {
+			abortTransaction(t);
+		}
+		else {
+			int value = t.snapshot.get(d.index);
+			System.out.println(tname + " reads data " + d.index + " & value read = " + value);
+		}
 	}
 	
 	//change Site Status to failed
@@ -444,6 +451,21 @@ public class TransactionManager {
 				availableCopiesRead(t, d, true);
 			else
 				availableCopiesWrite(t, d, t.getWriteValue(), true);
+		}
+	}
+	
+	public static void takeSnapshot(Transaction t) {
+		for(Map.Entry<Data, List<Site>> element: routes.entrySet()) {
+			List<Site> sites = element.getValue();
+			for(Site s: sites) {
+				if(!s.checkSiteStatus('F')) {
+					Data dataItem = s.getRODataItem(element.getKey());
+					if(dataItem.hasCommitted) {
+						t.snapshot.put(dataItem.index, dataItem.getLastCommittedVal());
+						break;
+					}
+				}
+			}
 		}
 	}
 }

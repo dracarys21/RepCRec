@@ -16,12 +16,14 @@ public class Data implements Comparable<Data>{
 	int currentVal;
 	int lastCommittedVal;
 	boolean isValid;
+	public boolean hasCommitted;
 	
 	public Data( int i, int initialVal){
 		currentVal = initialVal;
 		lastCommittedVal = initialVal;
 		index = i;
 		isValid=true;
+		hasCommitted = true;
 	}
 	
 	public Data(int i)
@@ -35,6 +37,7 @@ public class Data implements Comparable<Data>{
 		this.currentVal = d.currentVal;
 		this.lastCommittedVal = d.lastCommittedVal;
 		isValid = d.isValid;
+		hasCommitted = true;
 	}
 	
 	public int getCurrentVal() {

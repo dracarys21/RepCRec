@@ -55,6 +55,7 @@ public class Sim {
 				String tname = st.nextToken();
 				Transaction t =  new Transaction(tname,TransactionManager.time,"RO");
 				tm.addToSystem(t);
+				tm.takeSnapshot(t);
 			}
 			else if(instr.equals("end"))
 			{
