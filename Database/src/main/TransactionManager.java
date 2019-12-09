@@ -179,6 +179,8 @@ public class TransactionManager {
 			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.containsKey(d))
 			{
 				Site sacc = t.readLocksPossesed.get(d);
+				if(sacc==null)
+					sacc = t.writeLockPossesed.get(d).get(0);
 				//read the value
 				System.out.println(t.name+" reads data"+d.index+":"+sacc.getCurrentData(d)+" at site"+sacc);
 				return;
@@ -329,6 +331,18 @@ public class TransactionManager {
 			}
 		}
 		
+		if(acquiredLocksOnSites.isEmpty())
+		{
+			if(!isBlockedTrans)
+			{
+				activeList.remove(t);
+				t.changeStatusToBlocked(d, 'W', value); 
+				waitingQueue.get(d).add(t);
+				detector.waitingQueue = waitingQueue;
+				return;
+			}			
+		}
+		
 		t.writeLockPossesed.put(d,acquiredLocksOnSites);	
 		
 		//perform write.
@@ -424,6 +438,19 @@ public class TransactionManager {
 		int index = DataManager.sites.indexOf(new Site(sindex));
 		Site s = DataManager.sites.get(index);
 		s.recoverSite(time);
+		 List<Data> siteD = s.variables;
+		 for(Data d: siteD)
+		 {
+			 Queue<Transaction> waitingTrans = waitingQueue.get(d);
+			 Optional<Transaction> tw = waitingTrans.stream().filter(t->t.status.operation=='W').findFirst();
+			 if(tw.isPresent())
+			 {
+				 waitingTrans.remove(tw.get());
+				 activeList.add(tw.get());
+				 availableCopies(tw.get().name,tw.get().getActionData(),tw.get().status.writingVal);
+			 }
+		 }
+		
 	}
 	
 	private static void initializeWaitingQueue()
