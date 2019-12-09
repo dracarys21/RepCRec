@@ -27,6 +27,14 @@ public class Sim {
 
 	static Path outputfile ;
 	static List<String> outputLines = new ArrayList();
+	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		

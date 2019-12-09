@@ -48,6 +48,13 @@ public class DeadlockDetector {
 //		printDependenciesMap();
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	void constructWFGraph() {
 		for(Map.Entry<Transaction, Data> element: dependencies.entrySet()) {
 			Transaction source = element.getKey();
@@ -91,6 +98,13 @@ public class DeadlockDetector {
 		//printWFGraph();
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	void dfs_cycle(int u, int p, int color[],  int mark[], int par[]) {
 		// already (completely) visited vertex. 
 	    if (color[u] == 2) { 
@@ -131,6 +145,13 @@ public class DeadlockDetector {
 	    color[u] = 2;
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	void breakCycles(int edges, int mark[], int cyclenumber) 
 	{ 
 	  

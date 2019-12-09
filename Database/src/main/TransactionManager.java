@@ -54,6 +54,13 @@ public class TransactionManager {
 			activeListRO.add(t);
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	public static void removeFromSystem(String tName)
 	{
 		//get transaction type -- from RW/RO list
@@ -102,6 +109,13 @@ public class TransactionManager {
 		deadTransactions.add(t);
 	} 
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	public static void releaseLocks(Transaction t)
 	{
 		//release read locks
@@ -193,6 +207,13 @@ public class TransactionManager {
 		availableCopiesRead(t,d,isBlockedTrans);
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	//to Perform Read transaction
 	static boolean availableCopiesRead(Transaction t, Data d, boolean isBlockedTrans)
 	{
@@ -297,6 +318,13 @@ public class TransactionManager {
 		availableCopiesWrite(t,d,value,false);
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	//to Peform write transaction
 	private static void availableCopiesWrite(Transaction t, Data d, int value, boolean isBlockedTrans)
 	{
@@ -364,6 +392,13 @@ public class TransactionManager {
 		}
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	public static void multiversionRead(String tname, Data d) {
 		Transaction t = getActiveTransaction(tname, activeListRO, "RO");
 		if(!t.snapshot.containsKey(d.index)) {
@@ -394,6 +429,13 @@ public class TransactionManager {
 		return deadTransactions.stream().filter(t ->t.name.equals(tname)).count()==0;
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	private static void abortTransaction(Transaction t)
 	{
 		if(activeList.contains(t))
@@ -410,6 +452,13 @@ public class TransactionManager {
 		deadTransactions.add(t);
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	public static void abortBlockedTransaction(Transaction t, Data d) {
 		Queue<Transaction> wq = waitingQueue.get(d);
 		wq.remove(t);
@@ -449,6 +498,13 @@ public class TransactionManager {
 		}
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	//change Site Status to recover
 	public static void recoverSite(int sindex)
 	{
@@ -487,6 +543,13 @@ public class TransactionManager {
 		return null;		
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	public static void postDeadlock(Data d) {
 		Queue<Transaction> q = waitingQueue.get(d);
 		while(!q.isEmpty()) {
@@ -498,6 +561,13 @@ public class TransactionManager {
 		}
 	}
 	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: VARADA HANUMANTE
+	 * 
+	 * ************************************************************************
+	 */
 	public static void takeSnapshot(Transaction t) {
 		for(Map.Entry<Data, List<Site>> element: routes.entrySet()) {
 			List<Site> sites = element.getValue();
