@@ -112,6 +112,7 @@ public class Sim {
 		}
 		
 		//output result
+		System.out.println("Output being written to output file:"+Sim.outputfile+"");
 		try {
 			Files.write(Sim.outputfile,outputLines, StandardCharsets.UTF_8);
 		} catch (IOException e) {

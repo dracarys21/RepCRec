@@ -371,7 +371,8 @@ public class TransactionManager {
 		}
 		else {
 			int value = t.snapshot.get(d.index);
-			System.out.println(tname + " reads data " + d.index + " & value read = " + value);
+			Sim.outputLines.add(tname + " reads data " + d.index + " & value read = " + value);
+		//	System.out.println(tname + " reads data " + d.index + " & value read = " + value);
 		}
 	}
 	
