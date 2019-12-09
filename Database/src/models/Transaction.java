@@ -21,6 +21,7 @@ public class Transaction implements Comparable<Transaction>{
 	public HashMap<Data,Site> readLocksPossesed = new HashMap<Data,Site>();
 	public HashMap<Data,List<Site>> writeLockPossesed = new HashMap<Data,List<Site>>();
 	private final String type;
+	public Map<Integer, Integer> snapshot;
 	
 	public Transaction(String name, int time, String t)
 	{
@@ -28,6 +29,7 @@ public class Transaction implements Comparable<Transaction>{
 		startTime = time;
 		type = t;
 		status = new TransactionStatus('A',null,null);
+		snapshot = new HashMap<>();
 	}
 	
 	public Transaction(String tname, String t)
@@ -77,6 +79,7 @@ public class Transaction implements Comparable<Transaction>{
 	{
 		return status.operation.equals(new Character(a));		
 	}
+	
 	
 	@Override
 	public boolean equals(Object o) {
