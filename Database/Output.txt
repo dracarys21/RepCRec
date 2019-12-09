@@ -1,0 +1,14 @@
+T1 site:2 data:1 10
+T2 writing 2
+T3 writing 3
+T4 site:1 data:4 40
+T2 site:4 data:3 10
+T3 aborted
+T5 writing 5
+T2 commits
+T1 writing 2
+T1 site:6 data:5 55
+T5 aborted
+T1 commits
+T4 writing 1
+T4 commits
