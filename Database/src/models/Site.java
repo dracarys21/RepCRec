@@ -113,6 +113,14 @@ public class Site implements Comparable<Site>{
 		data.lastCommittedVal = data.currentVal;
 		data.hasCommitted = true;
 	}
+	
+	/*
+	 * ************************************************************************
+	 * 
+	 * AUTHOR: PRANALI AWASEKAR
+	 * 
+	 * ************************************************************************
+	 */
 	public HashSet<Transaction> failSite()
 	{
 		status = 'F';
