@@ -5,8 +5,13 @@ package main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -20,6 +25,8 @@ import models.Transaction;
 
 public class Sim {
 
+	static Path outputfile ;
+	static List<String> outputLines = new ArrayList();
 	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		
@@ -30,8 +37,11 @@ public class Sim {
 	//	dm.printDataOnSite();
 		
 		
-		Path inputFile = Paths.get("Input/Test1.txt");
+		Path inputFile = Paths.get(args[0]);
 		File file = inputFile.toFile(); 
+		
+		 outputfile = Paths.get(args[1]);
+	
 		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(file); 
 			  
@@ -100,8 +110,13 @@ public class Sim {
 			TransactionManager.time++;				
 		}
 		
-		//how to simulate waitingQueue logic for each transaction???
-		//Required to create a common Queue??
+		//output result
+		try {
+			Files.write(Sim.outputfile,outputLines, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 			 
 	}
 

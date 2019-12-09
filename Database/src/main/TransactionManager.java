@@ -3,8 +3,11 @@
  */
 package main;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,7 +94,8 @@ public class TransactionManager {
 	        }
 		}
 		
-		System.out.println(t.name+" commits");
+		Sim.outputLines.add(t.name+" commits");
+	//	System.out.println(t.name+" commits");
 		//release all its lock.	
 		releaseLocks(t);
 		t.changeStatusToDead();
@@ -179,7 +183,8 @@ public class TransactionManager {
 			if(t.readLocksPossesed.containsKey(d) || t.writeLockPossesed.containsKey(d))
 			{
 				//read the value
-				System.out.println(t.name+" reads data"+d.index+" at site"+t.readLocksPossesed.get(d));
+				Sim.outputLines.add(t.name+" reads data"+d.index+" at site"+t.readLocksPossesed.get(d));
+			//	System.out.println(t.name+" reads data"+d.index+" at site"+t.readLocksPossesed.get(d));
 				return;
 			}
 		}
@@ -217,7 +222,8 @@ public class TransactionManager {
 					if(!t.sitesAccessed.contains(s))
 						t.sitesAccessed.add(s);	
 					//read the value
-					System.out.println(t.name+" site:"+s.index+" data:"+d.index+" "+s.getCurrentData(d));
+					Sim.outputLines.add(t.name+" site:"+s.index+" data:"+d.index+" "+s.getCurrentData(d));
+				//	System.out.println(t.name+" site:"+s.index+" data:"+d.index+" "+s.getCurrentData(d));
 					return true;
 				}
 				//site not found
@@ -316,7 +322,8 @@ public class TransactionManager {
 			}
 		}
 		
-		System.out.println(t.name+" writing "+d.index);
+		Sim.outputLines.add(t.name+" writing "+d.index);
+	//	System.out.println(t.name+" writing "+d.index);
 		List<Site> acquiredLocksOnSites = new ArrayList<>();
 		//get write locks on all up sites
 		for(Site st:sitesfordata )
@@ -376,7 +383,8 @@ public class TransactionManager {
 		else
 			activeListRO.remove(t);
 		
-		System.out.println(t.name+" aborted");
+		Sim.outputLines.add(t.name+" aborted");
+	//	System.out.println(t.name+" aborted");
 		t.changeStatusToDead();
 		deadTransactions.add(t);
 	}
@@ -385,7 +393,8 @@ public class TransactionManager {
 		Queue<Transaction> wq = waitingQueue.get(d);
 		wq.remove(t);
 		releaseLocks(t);
-		System.out.println(t.name+" aborted");
+		Sim.outputLines.add(t.name+" aborted");
+//		System.out.println(t.name+" aborted");
 		t.changeStatusToDead();
 		deadTransactions.add(t);
 	}
@@ -397,17 +406,25 @@ public class TransactionManager {
 		for(Site stemp: s)
 		{
 			List<Data> data= new ArrayList<Data>(stemp.variables);
-			System.out.println(stemp.index+":");
+			Sim.outputLines.add(stemp.index+":");
+			//System.out.println(stemp.index+":");
+			String dataAdd = "";
 			for(Data dtemp: data)
-				System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
-			System.out.println();
+			{
+				dataAdd = dataAdd+dtemp.index+":"+dtemp.getLastCommittedVal()+" ";
+			//	System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
+			}
+		 Sim.outputLines.add(dataAdd);
+		//	System.out.println();
 		}
 		
-		System.out.println("Data Mangaer Values");
+		Sim.outputLines.add("Data Mangaer Values");
+	//	System.out.println("Data Mangaer Values");
 		
 		for(Data dtemp: DataManager.variables)
 		{
-			System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
+			Sim.outputLines.add(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
+		//	System.out.print(dtemp.index+":"+dtemp.getLastCommittedVal()+" ");
 		}
 	}
 	
