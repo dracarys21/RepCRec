@@ -30,7 +30,7 @@ A distributed database with multiversion concurrency control, deadlock detection
 
 ## Algorithms used
 * Available copies for replication
-* Strict two phase locking (using read and write locks)nat each site and validation at commit time
+* Strict two phase locking (using read and write locks) at each site and validation at commit time
 * Deadlock detection using DFS with white/grey/black coloring
 * Multiversion read consistency for read-only type of transactions
 
