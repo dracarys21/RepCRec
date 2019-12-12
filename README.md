@@ -1,12 +1,11 @@
-RepCRec
+# RepCRec
 
-Team: Pranali Awasekar(pa1373) and Varada Hanumante(vsh231)
-Replicated Concurrency Control and Recovery
+A distributed database with multiversion concurrency control, deadlock detection, replication and failure recovery.
 
+## Code structure:
 
-Code structure:
-
-Our code is organized into the following modules:
+### Our code is organized into the following modules:
+	
 	1. TransactionManager: It is responsible for keeping a track of all transactions - active and dead (Using Queue<Transaction> waitingQueue, List<Transaction> activeList, activeListRO and deadTransactions). Transactions are scheduled on a first-come-first-serve basis. Deadlock detection occurs every time a transaction goes into the waitingQueue.
 
 	2. DataManager: It creates and initializes data members as well as available sites. Data are added to appropriate sites per the given policy. It also contains a HashMap - routes, which maps each of the data-indices to site(s) where the data are present.
@@ -15,78 +14,13 @@ Our code is organized into the following modules:
 
 	4. Deadlock detector: It checks for occurrences of deadlocks every time a transaction gets blocked, i.e., enters the waitingQueue from the activeList. A waits-for graph is constructed for all the blocked transactions. Then a Depth First Search is done on this graph to break all the cycles. After blocking the youngest transaction in each cycle, it schedules the remaining transactions from the waitingQueue.
 
+### Description of our models:
 
-Workload distribution:
+	1. Data class contains information about the data variables. The index is used to uniquely identify each variable. "isValid" is used to check if the data is valid upon site recovery (i.e., if at least one write operation has occurred on it). hasCommitted is used to check if the lastCommittedVal can be read by an RO transaction. When a site fails, this is changed to false and remains false until at least one transaction performs a write operation on that variable and subsequently commits. It is changed to true only after the transaction has committed.
 
-TransactionManager along with most of its member functions have been implemented by Pranali Awasekar. This includes implementation of the available copies algorithm. She has also written the main function in the simulator class which parses the input file and invokes functions of the transaction manager.
-Multiversion Read along with deadlock detection have been implemented by Varada Hanumante. Models were initially designed by Varada Hanumante, but were revised by both the team members as needed, to accommodate changes and ensure adherence to object oriented programming principles.
+	2. The Site class represents the available sites. Index is used to identify each site. There is a list of variables present on the site. It also has its own read lock table and write lock table. "upTimeStamp" indicates when the site became active. It is changed to -1 when a site fails. Upon recovery, it is changed back to store the time of recovery. Status can be either of A(active), F(failed) or R(recovered).
 
-
-Data
-index: int
-currentVal:  int
-lastCommittedVal:  int
-isValid:  boolean
-hasCommitted:  boolean
-
-Data()
-@Override equals()
-@Override hashCode()
-@Override compareTo()Transaction
-name: String
-startTime: int
-sitesAccessed: HashSet<Site>
-status: TransactionStatus
-readLocksPossesed: Map<Data, Site>
-writeLockPossesed: Map<Data, List<Site>>
-type: String
-snapshot: Map<Integer, Integer>
-
-Transaction()
-@Override equals()
-@Override hashCode()
-@Override compareTo()
-changeStatusToActive()
-changeStatusToBlocked()
-changeStatusToDead()
-checkAction() Models:
-Site
-index: int
-variables: List<Data>
-readLockTable: Map<Data, List<Transaction>>
-WriteLockTable: Map<Data, Transaction>
-upTimeStamp: int
-status: char
-
-Site()
-failSite()
-recoverSite()
-activeSite()
-@Override equals()
-@Override hashCode()
-@Override compareTo()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Description of our models:
-1. Data class contains information about the data variables. The index is used to uniquely identify each variable. "isValid" is used to check if the data is valid upon site recovery (i.e., if at least one write operation has occurred on it). hasCommitted is used to check if the lastCommittedVal can be read by an RO transaction. When a site fails, this is changed to false and remains false until at least one transaction performs a write operation on that variable and subsequently commits. It is changed to true only after the transaction has committed.
-
-2. The Site class represents the available sites. Index is used to identify each site. There is a list of variables present on the site. It also has its own read lock table and write lock table. "upTimeStamp" indicates when the site became active. It is changed to -1 when a site fails. Upon recovery, it is changed back to store the time of recovery. Status can be either of A(active), F(failed) or R(recovered).
-
-3. Transaction class contains members and functions for the transactions occurring. Name is used to identify the transaction. "startTime" is the time at which the transaction is registered by the system and processed. SitesAccessed is a set of all the sites accessed by the transaction so far. As a result, when a site fails, we can make a decision as to whether the transaction needs to be aborted. Read and write locks possessed are acquired while execution and released together when the transaction commits or aborts. TransactionStatus is a class which stores information about the current status of the transaction (alive/blocked/dead). It also contains a member called operation which describes the operation that the transaction wants to perform (read/write).
+	3. Transaction class contains members and functions for the transactions occurring. Name is used to identify the transaction. "startTime" is the time at which the transaction is registered by the system and processed. SitesAccessed is a set of all the sites accessed by the transaction so far. As a result, when a site fails, we can make a decision as to whether the transaction needs to be aborted. Read and write locks possessed are acquired while execution and released together when the transaction commits or aborts. TransactionStatus is a class which stores information about the current status of the transaction (alive/blocked/dead). It also contains a member called operation which describes the operation that the transaction wants to perform (read/write).
 
 
 Test cases:
