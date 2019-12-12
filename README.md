@@ -36,7 +36,7 @@ A distributed database with multiversion concurrency control, deadlock detection
 
 ## Testing Assumptions
 
-## Some Valid Tests:
+### Some Valid Tests:
 ```
 1. begin(T1)
 begin(T2)
