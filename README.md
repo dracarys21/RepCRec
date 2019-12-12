@@ -23,7 +23,8 @@ A distributed database with multiversion concurrency control, deadlock detection
 	3. Transaction class contains members and functions for the transactions occurring. Name is used to identify the transaction. "startTime" is the time at which the transaction is registered by the system and processed. SitesAccessed is a set of all the sites accessed by the transaction so far. As a result, when a site fails, we can make a decision as to whether the transaction needs to be aborted. Read and write locks possessed are acquired while execution and released together when the transaction commits or aborts. TransactionStatus is a class which stores information about the current status of the transaction (alive/blocked/dead). It also contains a member called operation which describes the operation that the transaction wants to perform (read/write).
 
 
-Test cases:
+## Test cases:
+```
 1. begin(T1)
 begin(T2)
 begin(T3)
@@ -106,4 +107,5 @@ R(T3,x1)
 R(T4,x1)
 end(T3)
 end(T4)
+```
 
