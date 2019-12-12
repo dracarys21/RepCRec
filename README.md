@@ -34,7 +34,9 @@ A distributed database with multiversion concurrency control, deadlock detection
 * Deadlock detection using DFS with white/grey/black coloring
 * Multiversion read consistency for read-only type of transactions
 
-## Test cases:
+## Testing Assumptions
+
+## Some Valid Tests:
 ```
 1. begin(T1)
 begin(T2)
