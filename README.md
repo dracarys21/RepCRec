@@ -25,6 +25,12 @@ A distributed database with multiversion concurrency control, deadlock detection
 ## Assumptions
 The data consists of 20 distinct variables x1, ..., x20. There are 10 sites numbered 1 to 10. The odd indexed variables are at one site each (i.e. 1+ (index number mod 10)). For example, x3 and x13 are both at site 4. Even indexed variables are at all sites. Each variable xi is initialized to the value 10i (10 times i). Each site has an independent lock table. If that site fails, the lock table is erased.
 
+## Algorithms used
+* Available copies for replication
+* Strict two phase locking (using read and write locks)nat each site and validation at commit time
+* Deadlock detection using DFS with white/grey/black coloring
+* Multiversion read consistency for read-only type of transactions
+
 ## Test cases:
 ```
 1. begin(T1)
