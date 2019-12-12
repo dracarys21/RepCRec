@@ -36,6 +36,37 @@ A distributed database with multiversion concurrency control, deadlock detection
 
 ## Testing Assumptions
 
+* The execution file has the following format:
+begin(T1) says that T1 begins
+beginRO(T3) says that T3 begins and is read-only
+* R(T1, x4) says transaction 1 wishes to read x4 (provided it can get the locks or provided it doesn’t need the locks (if T1 is a read-only transaction)).
+* W(T1, x6,v) says transaction 1 wishes to write all available copies of x6 (provided it can get the locks on available copies) with the value v. So, T1 can write to x6 only when T1 has locks on all sites that are up and that contain x6.
+* end(T1) causes the system to report whether T1 can commit in the
+format
+T1 commits
+or
+T1 aborts
+* fail(6) says site 6 fails.
+* recover(7) says site 7 recovers.
+* A newline in the input means time advances by one.
+* Example (partial script with six steps in which transactions T1 commits,
+and one of T3 and T4 may commit)
+```
+begin(T1)
+begin(T2)
+begin(T3)
+W(T1, x1,5)
+W(T3, x2,32)
+W(T2, x1,17) // will cause T2 to wait, but the write will go ahead after T1
+commits
+end(T1)
+begin(T4)
+W(T4, x4,35)
+W(T3, x5,21)
+W(T4,x2,21)
+W(T3,x4,23) // T4 will abort because it’s younger
+```
+
 ### Some Valid Tests:
 ```
 1. begin(T1)
