@@ -4,7 +4,7 @@ A distributed database with multiversion concurrency control, deadlock detection
 
 ## Code structure:
 
-### Our code is organized into the following modules:
+### The code is organized into the following modules:
 	
 * TransactionManager: It is responsible for keeping a track of all transactions - active and dead (Using Queue<Transaction> waitingQueue, List<Transaction> activeList, activeListRO and deadTransactions). Transactions are scheduled on a first-come-first-serve basis. Deadlock detection occurs every time a transaction goes into the waitingQueue.
 
@@ -14,7 +14,7 @@ A distributed database with multiversion concurrency control, deadlock detection
 
 * Deadlock detector: It checks for occurrences of deadlocks every time a transaction gets blocked, i.e., enters the waitingQueue from the activeList. A waits-for graph is constructed for all the blocked transactions. Then a Depth First Search is done on this graph to break all the cycles. After blocking the youngest transaction in each cycle, it schedules the remaining transactions from the waitingQueue.
 
-### Description of our models:
+### Description of the models:
 
 * Data class contains information about the data variables. The index is used to uniquely identify each variable. "isValid" is used to check if the data is valid upon site recovery (i.e., if at least one write operation has occurred on it). hasCommitted is used to check if the lastCommittedVal can be read by an RO transaction. When a site fails, this is changed to false and remains false until at least one transaction performs a write operation on that variable and subsequently commits. It is changed to true only after the transaction has committed.
 
